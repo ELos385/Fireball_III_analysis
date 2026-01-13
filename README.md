@@ -3,11 +3,11 @@ Fireball III Analysis Setup on SWAN
 This repository contains analysis scripts for the Fireball III experiment. This guide explains how to set up a custom Python environment on SWAN and install dependencies, including LAMP, so that notebooks and analysis scripts run smoothly.
 Table of Contents
 
-    Prerequisites
+##  Prerequisites
 
-    Step 1: Clear SWAN Environment Variables
+## Step 1: Clear SWAN Environment Variables
 
-    Step 2: Install Micromamba
+## Step 2: Install Micromamba
 
     Step 3: Create a Custom Python Environment
 
@@ -20,27 +20,42 @@ Table of Contents
     Adding New Diagnostics
 
     References
-
-Prerequisites
+## Prerequisites
 
     SWAN account at CERN.
+
+## Dependencies
+    LAMP:  https://github.com/brendankettle/LAMP/blob/main/docs/UserGuide.md
+    scipy
+    skimage
+    pandas
+    toml
+    opencv
+
+
+## Set up virtual environment in SWAN which supports LAMP
 
 Step 1: Clear SWAN Environment Variables
 
 Create a script in your home directory called setup_custom_kernel.sh:
 
+```markdown
+```bash
 #!/bin/bash
 # Clear interfering environment variables
 unset PYTHONHOME
 unset PYTHONPATH
 unset LD_LIBRARY_PATH
 unalias python &>/dev/null
+```
 
 This ensures that SWAN’s default Python environment does not interfere with your custom setup.
 Step 2: Install Micromamba (Lightweight Conda Replacement)
 
-Set up the Micromamba environment:
+### Set up the Micromamba environment:
 
+```markdown
+```bash
 export MAMBA_ROOT_PREFIX=${HOME}/mamba
 MICROMAMBA=${MAMBA_ROOT_PREFIX}/bin/micromamba
 
@@ -51,26 +66,22 @@ if [ ! -f "${MICROMAMBA}" ]; then
     wget -qO- https://micromamba.snakepit.net/api/micromamba/linux-64/latest \
       | tar -xvj bin/micromamba
 fi
+```
 
-To make Micromamba persistent in SWAN:
+### make Micromamba persistent in SWAN:
 
 micromamba shell init --shell bash --root-prefix=/eos/home-i03/e/elos/mamba
 source ~/.bashrc
 
-Now you can activate environments normally:
-
-micromamba activate FBIII
-
-Step 3: Create a Custom Python Environment
+### Create a Custom Python Environment
 
 Create a SWAN-safe environment named FBIII:
 
-KERNEL_NAME=FBIII
-ENV_PREFIX=$MAMBA_ROOT_PREFIX/envs/$KERNEL_NAME
-
 $MICROMAMBA create -p $ENV_PREFIX python=3.12 ipykernel scipy matplotlib pandas scikit-image opencv toml
 
-Step 4: Install LAMP
+### activate micromamba environment
+
+micromamba activate FBIII
 
 Install LAMP in the environment:
 
