@@ -5,13 +5,13 @@ This repository contains analysis scripts for the Fireball III experiment. This 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
 - [Dependencies](#Dependencies)
-- [Set up virtual environment in SWAN which supports LAMP (#Set-up-virtual-environment-in-SWAN-which-supports-LAMP)]
-- [Step 1: Clear SWAN Environment Variables](#step-1-clear-swan-environment-variables)
-- [Step 2: Install Micromamba](#step-2-install-micromamba)
-- [Step 3: Create a Custom Python Environment](#step-3-create-a-custom-python-environment)
-- [Step 4: Install LAMP](#step-4-install-lamp)
-- [Step 5: Configure Jupyter Kernel](#step-5-configure-jupyter-kernel)
-- [Step 6: Launch SWAN Jupyter Notebook](#step-6-launch-swan-jupyter-notebook)
+- [Set up virtual environment in SWAN which supports LAMP](#Set-up-virtual-environment-in-SWAN-which-supports-LAMP)
+- [1: Clear SWAN Environment Variables](#step-1-clear-swan-environment-variables)
+- [2: Install Micromamba](#step-2-install-micromamba)
+- [3: Create and activate a Custom Python Environment](#step-3-create-a-custom-python-environment)
+- [4: Install LAMP](#step-4-install-lamp)
+- [5: Configure Jupyter Kernel](#step-5-configure-jupyter-kernel)
+- [6: Launch SWAN Jupyter Notebook](#step-6-launch-swan-jupyter-notebook)
 - [Adding New Diagnostics](#adding-new-diagnostics)
 - [References](#references)
 
@@ -29,7 +29,7 @@ This repository contains analysis scripts for the Fireball III experiment. This 
 
 ## Set up virtual environment in SWAN which supports LAMP
 
-Step 1: Clear SWAN Environment Variables
+1: Clear SWAN Environment Variables
 
 Create a script in your home directory called setup_custom_kernel.sh:
 
@@ -44,7 +44,7 @@ unalias python &>/dev/null
 ```
 
 This ensures that SWAN’s default Python environment does not interfere with your custom setup.
-Step 2: Install Micromamba (Lightweight Conda Replacement)
+2: Install Micromamba (Lightweight Conda Replacement)
 
 ### Set up the Micromamba environment:
 
@@ -64,22 +64,24 @@ fi
 
 ### make Micromamba persistent in SWAN:
 
+```markdown
+```bash
 micromamba shell init --shell bash --root-prefix=/eos/home-i03/e/elos/mamba
 source ~/.bashrc
+```
 
 ### Create a Custom Python Environment
 
-Create a SWAN-safe environment named FBIII:
+Create a new environment named <env_name>:
 
-$MICROMAMBA create -p $ENV_PREFIX python=3.12 ipykernel scipy matplotlib pandas scikit-image opencv toml
+$MICROMAMBA create -p <env_name> python=3.12 ipykernel scipy matplotlib pandas scikit-image opencv toml
 
 ### activate micromamba environment
 
-micromamba activate FBIII
+micromamba activate <env_name>
 
 Install LAMP in the environment:
 
-micromamba activate FBIII
 pip install LAMP
 
 Notes:
@@ -100,7 +102,7 @@ python -c "import LAMP.DAQs as DAQs; print(DAQs.__path__)"
 
 cp FireballIII.py /PATH_to_DAQ/
 
-Step 5: Configure Jupyter Kernel
+5: Configure Jupyter Kernel
 
     Create the SWAN kernel directory:
 
