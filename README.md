@@ -14,8 +14,9 @@ This repository contains analysis scripts for the Fireball III experiment. This 
     - [6: activate micromamba environment](#6:-activate-micromamba-environment)
     - [7: Install LAMP in the environment](#7:-Install-LAMP-in-the-environment)
     - [8: Configure Jupyter Kernel](#8:-Configure-Jupyter-Kernel)
-- [Write bash script to automatically load settings](Write-bash-script-to-automatically-load-settings)
+    - [9: Write bash script to automatically load settings](#9:-Write-bash-script-to-automatically-load-settings)
 - [Set up Fireball Github in your SWAN account](#Set-up-Fireball-Github-in-your-SWAN-account)
+    - [Fireball_III_analysis github structure](#Fireball_III_analysis-github-structure) 
     - [Adding New Diagnostics](#adding-new-diagnostics)
 - [References](#references)
 
@@ -162,7 +163,7 @@ micromamba run -n FBIII python -m ipykernel install \
 
 when running a jupyter notebook which requires LAMP, select the kernel "Python (FBIII)" from the drop down menu
 
-## Write bash script to automatically load settings
+### Write bash script to automatically load settings
 
 
 
@@ -193,11 +194,11 @@ Copy FireballIII.py into the DAQ folder:
 cp FireballIII.py /PATH_to_DAQ/
 ```
 
-## Fireball_III_analysis github structure
+### Fireball_III_analysis github structure
 
 The Fireball_III_analysis github is structured as outlined in the LAMP documentations, please read this first.
 
-## Adding New Diagnostics
+### Adding New Diagnostics
 
     See the LAMP documentation for guidance.
 
