@@ -1,3 +1,15 @@
+## Table of contents
+- [Set up virtual environment in SWAN which supports LAMP](#Set-up-virtual-environment-in-SWAN-which-supports-LAMP)
+    - [1: Clear SWAN Environment Variables](#1:-clear-swan-environment-variables)
+    - [2: Install Micromamba (Lightweight Conda Replacement) if it doesn't exist](#2:-Install-Micromamba-(Lightweight-Conda-Replacement)-if-it-doesn't-exist)
+    - [3: Set up the Micromamba environment](#3:-Set-up-the-Micromamba-environment)
+    - [4: Make Micromamba persistent in SWAN](#4:-Make-Micromamba-persistent-in-SWAN)
+    - [5: Create a Custom Python Environment](#5:-Create-a-Custom-Python-Environment)
+    - [6: activate micromamba environment](#6:-activate-micromamba-environment)
+    - [7: Install LAMP in the environment](#7:-Install-LAMP-in-the-environment)
+    - [8: Configure Jupyter Kernel](#8:-Configure-Jupyter-Kernel)
+    - [9: Write bash script to automatically load settings](#9:-Write-bash-script-to-automatically-load-settings)
+
 # Set up virtual environment in SWAN which supports LAMP - Only do this ONCE, to use LAMP
 
 Start SWAN session, open terminal
