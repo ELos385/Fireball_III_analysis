@@ -14,6 +14,7 @@ This repository contains analysis scripts for the Fireball III experiment. This 
     - [6: activate micromamba environment](#6:-activate-micromamba-environment)
     - [7: Install LAMP in the environment](#7:-Install-LAMP-in-the-environment)
     - [8: Configure Jupyter Kernel](#8:-Configure-Jupyter-Kernel)
+- [Set up Fireball Github in your SWAN account](#Set-up-Fireball-Github-in-your-SWAN-account)
 - [Adding New Diagnostics](#adding-new-diagnostics)
 - [References](#references)
 
@@ -31,7 +32,7 @@ This repository contains analysis scripts for the Fireball III experiment. This 
     toml
     opencv
 
-## Set up virtual environment in SWAN which supports LAMP
+## Set up virtual environment in SWAN which supports LAMP - Only do this ONCE, to use LAMP
 
 Start SWAN session, open terminal
 
@@ -116,7 +117,7 @@ mkdir -p /home/elos/.ipython/kernels/FBIII
 ```bash
 micromamba run -n FBIII which python
 ```
-# Example output:
+    Example output:
 
 ```markdown
 ```bash
@@ -129,6 +130,7 @@ micromamba run -n FBIII which python
 ```bash
 nano /home/elos/.ipython/kernels/FBIII/kernel.json
 ```
+
 inside in the file, paste:
 
 ```markdown
@@ -156,6 +158,12 @@ micromamba run -n FBIII python -m ipykernel install \
   --name FBIII \
   --display-name "Python (FBIII)"
 ```
+
+when running a jupyter notebook which requires LAMP, select the kernel "Python (FBIII)" from the drop down menu
+
+## Write bash script to automatically load settings:
+
+
 
 ## Set up Fireball Github in your SWAN account
 
@@ -192,18 +200,19 @@ The Fireball_III_analysis github is structured as outlined in the LAMP documenta
 
     See the LAMP documentation for guidance.
 
-    My examples for Fireball III-specific diagnostics (HRM5 & HRM6) are in diagnostics.toml.
+    My example initialisations for Fireball III-specific diagnostics (HRM5 & HRM6) are in diagnostics.toml.
 
     To add a new diagnostic, <NewDiag>:
+    Add a new header to diagnostics.toml, follow the existing structure shown in my example and in the LAMP documentation.
 
-        Create a Python file in the diagnostics/ folder with a class for your diagnostic. Copy from
-        existing Fireball III diagnostic classes and modify as needed.
+    Create a Python file in the diagnostics/ folder with a class for your diagnostic. Copy from
+    existing Fireball III diagnostic classes and modify as needed.
 
-        Store analysis scripts in scripts/<NewDiag>/
+    Store analysis scripts (these can also be copied from Fireball 3 analysis) in scripts/<NewDiag>/
 
-        Store calibration files under calibs
+    Store the diagnosti calibration files under ./calibs/
 
-References
+## References
 
     SWAN Custom Kernels: https://swan-community.web.cern.ch/t/installing-custom-jupyter-kernels-at-swan-startup/297
 
