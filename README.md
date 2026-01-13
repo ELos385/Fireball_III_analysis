@@ -1,13 +1,23 @@
 Fireball III Analysis Setup on SWAN
 
 This repository contains analysis scripts for the Fireball III experiment. This guide explains how to set up a custom Python environment on SWAN and install dependencies, including LAMP, so that notebooks and analysis scripts run smoothly.
-Table of Contents
+
+## Table of Contents
+- [Prerequisites](#prerequisites)
+- [Step 1: Clear SWAN Environment Variables](#step-1-clear-swan-environment-variables)
+- [Step 2: Install Micromamba](#step-2-install-micromamba)
+- [Step 3: Create a Custom Python Environment](#step-3-create-a-custom-python-environment)
+- [Step 4: Install LAMP](#step-4-install-lamp)
+- [Step 5: Configure Jupyter Kernel](#step-5-configure-jupyter-kernel)
+- [Step 6: Launch SWAN Jupyter Notebook](#step-6-launch-swan-jupyter-notebook)
+- [Adding New Diagnostics](#adding-new-diagnostics)
+- [References](#references)
 
 ##  Prerequisites
 
-## Step 1: Clear SWAN Environment Variables
+## 1: Clear SWAN Environment Variables
 
-## Step 2: Install Micromamba
+## 2: Install Micromamba
 
     Step 3: Create a Custom Python Environment
 
