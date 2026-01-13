@@ -4,6 +4,8 @@ This repository contains analysis scripts for the Fireball III experiment. This 
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
+- [Dependencies](#Dependencies)
+- [Set up virtual environment in SWAN which supports LAMP (#Set-up-virtual-environment-in-SWAN-which-supports-LAMP)]
 - [Step 1: Clear SWAN Environment Variables](#step-1-clear-swan-environment-variables)
 - [Step 2: Install Micromamba](#step-2-install-micromamba)
 - [Step 3: Create a Custom Python Environment](#step-3-create-a-custom-python-environment)
@@ -13,35 +15,17 @@ This repository contains analysis scripts for the Fireball III experiment. This 
 - [Adding New Diagnostics](#adding-new-diagnostics)
 - [References](#references)
 
-##  Prerequisites
-
-## 1: Clear SWAN Environment Variables
-
-## 2: Install Micromamba
-
-    Step 3: Create a Custom Python Environment
-
-    Step 4: Install LAMP
-
-    Step 5: Configure Jupyter Kernel
-
-    Step 6: Launch SWAN Jupyter Notebook
-
-    Adding New Diagnostics
-
-    References
 ## Prerequisites
 
     SWAN account at CERN.
 
 ## Dependencies
-    LAMP:  https://github.com/brendankettle/LAMP/blob/main/docs/UserGuide.md
+    LAMP:  https://github.com/brendankettle/LAMP/tree/main
     scipy
     skimage
     pandas
     toml
     opencv
-
 
 ## Set up virtual environment in SWAN which supports LAMP
 
