@@ -5,15 +5,15 @@ This repository contains analysis scripts for the Fireball III experiment. This 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
 - [Dependencies](#Dependencies)
-- [Set up virtual environment in SWAN which supports LAMP](Set-up-virtual-environment-in-SWAN-which-supports-LAMP)
-    - [1: Clear SWAN Environment Variables](1:-clear-swan-environment-variables)
-    - [2: Install Micromamba (Lightweight Conda Replacement) if it doesn't exist](2:-Install-Micromamba-(Lightweight-Conda-Replacement)-if-it-doesn't-exist)
-    - [3: Set up the Micromamba environment](3:-Set-up-the-Micromamba-environment)
-    - [4: Make Micromamba persistent in SWAN](4:-Make-Micromamba-persistent-in-SWAN)
-    - [5: Create a Custom Python Environment](5:-Create-a-Custom-Python-Environment)
-    - [6: activate micromamba environment](6:-activate-micromamba-environment)
-    - [7: Install LAMP in the environment](7:-Install-LAMP-in-the-environment)
-    - [8: Configure Jupyter Kernel](8:-Configure-Jupyter-Kernel)
+- [Set up virtual environment in SWAN which supports LAMP](#Set-up-virtual-environment-in-SWAN-which-supports-LAMP)
+    - [1: Clear SWAN Environment Variables](#1:-clear-swan-environment-variables)
+    - [2: Install Micromamba (Lightweight Conda Replacement) if it doesn't exist](#2:-Install-Micromamba-(Lightweight-Conda-Replacement)-if-it-doesn't-exist)
+    - [3: Set up the Micromamba environment](#3:-Set-up-the-Micromamba-environment)
+    - [4: Make Micromamba persistent in SWAN](#4:-Make-Micromamba-persistent-in-SWAN)
+    - [5: Create a Custom Python Environment](#5:-Create-a-Custom-Python-Environment)
+    - [6: activate micromamba environment](#6:-activate-micromamba-environment)
+    - [7: Install LAMP in the environment](#7:-Install-LAMP-in-the-environment)
+    - [8: Configure Jupyter Kernel](#8:-Configure-Jupyter-Kernel)
 - [Adding New Diagnostics](#adding-new-diagnostics)
 - [References](#references)
 
@@ -159,7 +159,14 @@ micromamba run -n FBIII python -m ipykernel install \
 
 ## Set up Fireball Github in your SWAN account
 
-Copy _local.toml and rename it local.toml.
+Clone the repository into SWAN:
+
+```markdown
+```bash
+git clone https://github.com/ELos385/Fireball_III_analysis.git
+```
+
+Next, copy _local.toml and rename it local.toml.
 
 Find the DAQ module path by running the following in the terminal:
 
@@ -168,6 +175,8 @@ Find the DAQ module path by running the following in the terminal:
 python -c "import LAMP.DAQs as DAQs; print(DAQs.__path__)"
 ```
 
+which outputs /PATH_to_DAQ/ in the terminal
+
 Copy FireballIII.py into the DAQ folder:
 
 ```markdown
@@ -175,31 +184,24 @@ Copy FireballIII.py into the DAQ folder:
 cp FireballIII.py /PATH_to_DAQ/
 ```
 
-Step 6: Launch SWAN Jupyter Notebook
+## Fireball_III_analysis github structure
 
-    Clone the repository inside SWAN:
+The Fireball_III_analysis github is structured as outlined in the LAMP documentations, please read this first.
 
-git clone https://github.com/ELos385/Fireball_III_analysis.git
+## Adding New Diagnostics
 
-    Start Jupyter Notebook from SWAN:
-
-jupyter notebook
-
-Select Python (FBIII) kernel to use your custom environment.
-Adding New Diagnostics
-
-    See the LAMP documentation
-    for guidance.
+    See the LAMP documentation for guidance.
 
     My examples for Fireball III-specific diagnostics (HRM5 & HRM6) are in diagnostics.toml.
 
-    To add a new diagnostic:
+    To add a new diagnostic, <NewDiag>:
 
-        Create a Python file in the diagnostics/ folder with a class for your diagnostic.
+        Create a Python file in the diagnostics/ folder with a class for your diagnostic. Copy from
+        existing Fireball III diagnostic classes and modify as needed.
 
-        Copy from existing Fireball III classes and modify as needed.
+        Store analysis scripts in scripts/<NewDiag>/
 
-        Store analysis scripts in scripts/diagname/.
+        Store calibration files under calibs
 
 References
 
