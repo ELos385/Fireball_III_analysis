@@ -1,0 +1,114 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f7345905",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Initializing LAMP, version 0.1.0\n",
+      "Using DAQ: FireballIII\n"
+     ]
+    }
+   ],
+   "source": [
+    "import os, sys\n",
+    "from pathlib import Path\n",
+    "import matplotlib.pyplot as plt \n",
+    "\n",
+    "# 1. import the Experiment object from LAMP \n",
+    "from LAMP import Experiment\n",
+    "\n",
+    "ROOT_FOLDER = str(Path.cwd().parent.parent) #Path.cwd().parent.parent#Path(__file__).resolve().parents[1] # absolute path to the experiment config files and other subfolders; 2 directories up in this case (assuming script in in ./scripts/eSpec/script.py)\n",
+    "sys.path.append(ROOT_FOLDER)\n",
+    "# import diagnostics.ESpec_\n",
+    "ex = Experiment(ROOT_FOLDER)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "dfe377c5",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "2427f446",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# 3. get ESpec diagnostic object\n",
+    "HRM6 = ex.get_diagnostic('HRM6')\n",
+    "HRM5 = ex.get_diagnostic('HRM5')\n",
+    "\n",
+    "device=\"HRM6\"\n",
+    "# calib_ids={\"HRM5\":T_FORM_HRMT5, \"HRM6\":T_FORM_HRMT6}\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "36204787",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# 4. define a shot\n",
+    "shot_dict = {'shot': [1749118053]}"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "495b7695",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# 5. plot some processed data\n",
+    "#devices[device].get_proc_shot(shot_dict, calib_id=calib_ids[device])\n",
+    "fig, ax = HRM6.plot_proc_shot(shot_dict)#, calib_id=calib_ids[device], debug=True)\n",
+    "plt.tight_layout()\n",
+    "plt.show(block=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "1e8f3706",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "@webio": {
+   "lastCommId": null,
+   "lastKernelId": null
+  },
+  "kernelspec": {
+   "display_name": "Python (FBIII)",
+   "language": "python",
+   "name": "fbiii"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.12"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

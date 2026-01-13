@@ -1,0 +1,17 @@
+[HRM5]
+type = 'ESpec'
+data_folder = '/chromox_cameras/HRM5/' 
+data_stem = 'OD' # empty for some DAQs 
+data_type = 'csv'
+data_ext = '.csv'
+calib_subfolder = './HRM5/' # optional
+calib_file = 'HRM5_transform_LAMP_1749111754935000.pkl'
+
+[HRM6]
+type = 'ESpec'
+data_folder = '/chromox_cameras/HRM6/' 
+data_stem = 'OD' # empty for some DAQs 
+data_type = 'csv'
+data_ext = '.csv'
+calib_subfolder = './HRM6/' # optional
+calib_file = 'HRM6_transform_LAMP_1749111754935000.pkl'
