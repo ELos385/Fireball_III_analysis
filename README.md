@@ -218,7 +218,3 @@ The Fireball_III_analysis github is structured as outlined in the LAMP documenta
     LAMP GitHub: https://github.com/brendankettle/LAMP
 
     Fireball III Analysis Repository: https://github.com/ELos385/Fireball_III_analysis
-
-
-
-ChatGPT can make mistakes. Check important info. See Cookie Preferences.
