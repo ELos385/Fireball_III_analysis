@@ -6,12 +6,13 @@ This repository contains analysis scripts for the Fireball III experiment. This 
 - [Prerequisites](#prerequisites)
 - [Dependencies](#Dependencies)
 - [Set up virtual environment in SWAN which supports LAMP](#Set-up-virtual-environment-in-SWAN-which-supports-LAMP)
-- [1: Clear SWAN Environment Variables](#step-1-clear-swan-environment-variables)
-- [2: Install Micromamba](#step-2-install-micromamba)
-- [3: Create and activate a Custom Python Environment](#step-3-create-a-custom-python-environment)
-- [4: Install LAMP](#step-4-install-lamp)
-- [5: Configure Jupyter Kernel](#step-5-configure-jupyter-kernel)
-- [6: Launch SWAN Jupyter Notebook](#step-6-launch-swan-jupyter-notebook)
+    - [1: Clear SWAN Environment Variables](#1:-clear-swan-environment-variables)
+    - [2: Install Micromamba (Lightweight Conda Replacement) if it doesn't exist](#2:-Install-Micromamba-(Lightweight-Conda-Replacement)-if-it-doesn't-exist)
+    - [3: Set up the Micromamba environment](#3:-Set-up-the-Micromamba-environment)
+    - [4: Make Micromamba persistent in SWAN](#4:-Make-Micromamba-persistent-in-SWAN)
+    - [5: Create a Custom Python Environment](#5:-Create-a-Custom-Python-Environment)
+    - [6: activate micromamba environment](#6:-activate-micromamba-environment)
+    - [7: Install LAMP in the environment](#7:-Install-LAMP-in-the-environment)
 - [Adding New Diagnostics](#adding-new-diagnostics)
 - [References](#references)
 
@@ -29,7 +30,7 @@ This repository contains analysis scripts for the Fireball III experiment. This 
 
 ## Set up virtual environment in SWAN which supports LAMP
 
-1: Clear SWAN Environment Variables
+### 1: Clear SWAN Environment Variables
 
 Create a script in your home directory called setup_custom_kernel.sh:
 
@@ -44,16 +45,11 @@ unalias python &>/dev/null
 ```
 
 This ensures that SWAN’s default Python environment does not interfere with your custom setup.
-2: Install Micromamba (Lightweight Conda Replacement)
 
-### Set up the Micromamba environment:
+### 2: Install Micromamba (Lightweight Conda Replacement) if it doesn't exist
 
 ```markdown
 ```bash
-export MAMBA_ROOT_PREFIX=${HOME}/mamba
-MICROMAMBA=${MAMBA_ROOT_PREFIX}/bin/micromamba
-
-# Download micromamba if it doesn't exist
 if [ ! -f "${MICROMAMBA}" ]; then
     mkdir -p $(dirname ${MICROMAMBA})
     cd ${MAMBA_ROOT_PREFIX}
@@ -62,7 +58,15 @@ if [ ! -f "${MICROMAMBA}" ]; then
 fi
 ```
 
-### make Micromamba persistent in SWAN:
+### 3: Set up the Micromamba environment
+
+```markdown
+```bash
+export MAMBA_ROOT_PREFIX=${HOME}/mamba
+MICROMAMBA=${MAMBA_ROOT_PREFIX}/bin/micromamba
+```
+
+### 4: Make Micromamba persistent in SWAN
 
 ```markdown
 ```bash
@@ -70,19 +74,28 @@ micromamba shell init --shell bash --root-prefix=/eos/home-i03/e/elos/mamba
 source ~/.bashrc
 ```
 
-### Create a Custom Python Environment
+### 5: Create a Custom micromamba Environment
 
 Create a new environment named <env_name>:
 
+```markdown
+```bash
 $MICROMAMBA create -p <env_name> python=3.12 ipykernel scipy matplotlib pandas scikit-image opencv toml
+```
 
-### activate micromamba environment
+### 6: activate micromamba environment
 
+```markdown
+```bash
 micromamba activate <env_name>
+```
 
-Install LAMP in the environment:
+### 7: Install LAMP in the environment
 
+```markdown
+```bash
 pip install LAMP
+```
 
 Notes:
 
