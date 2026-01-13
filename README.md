@@ -14,8 +14,9 @@ This repository contains analysis scripts for the Fireball III experiment. This 
     - [6: activate micromamba environment](#6:-activate-micromamba-environment)
     - [7: Install LAMP in the environment](#7:-Install-LAMP-in-the-environment)
     - [8: Configure Jupyter Kernel](#8:-Configure-Jupyter-Kernel)
+- [Write bash script to automatically load settings](Write-bash-script-to-automatically-load-settings)
 - [Set up Fireball Github in your SWAN account](#Set-up-Fireball-Github-in-your-SWAN-account)
-- [Adding New Diagnostics](#adding-new-diagnostics)
+    - [Adding New Diagnostics](#adding-new-diagnostics)
 - [References](#references)
 
 ## Prerequisites
@@ -161,7 +162,7 @@ micromamba run -n FBIII python -m ipykernel install \
 
 when running a jupyter notebook which requires LAMP, select the kernel "Python (FBIII)" from the drop down menu
 
-## Write bash script to automatically load settings:
+## Write bash script to automatically load settings
 
 
 
