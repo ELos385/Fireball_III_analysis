@@ -3,7 +3,6 @@ Fireball III Analysis Setup on SWAN
 This repository contains analysis scripts for the Fireball III experiment. This guide explains how to set up a custom Python environment on SWAN and install dependencies, including LAMP, so that notebooks and analysis scripts run smoothly.
 
 ## Table of Contents
-- [Prerequisites](#prerequisites)
 - [Dependencies](#Dependencies)
 - [Set up virtual environment in SWAN which supports LAMP](#Set-up-virtual-environment-in-SWAN-which-supports-LAMP)
     - [1: Clear SWAN Environment Variables](#1:-clear-swan-environment-variables)
@@ -19,10 +18,6 @@ This repository contains analysis scripts for the Fireball III experiment. This 
     - [Fireball_III_analysis github structure](#Fireball_III_analysis-github-structure) 
     - [Adding New Diagnostics](#adding-new-diagnostics)
 - [References](#references)
-
-## Prerequisites
-
-    SWAN account at CERN.
 
 ## Dependencies
     LAMP:  
