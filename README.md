@@ -5,14 +5,15 @@ This repository contains analysis scripts for the Fireball III experiment. This 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
 - [Dependencies](#Dependencies)
-- [Set up virtual environment in SWAN which supports LAMP](#Set-up-virtual-environment-in-SWAN-which-supports-LAMP)
-    - [1: Clear SWAN Environment Variables](#1:-clear-swan-environment-variables)
-    - [2: Install Micromamba (Lightweight Conda Replacement) if it doesn't exist](#2:-Install-Micromamba-(Lightweight-Conda-Replacement)-if-it-doesn't-exist)
-    - [3: Set up the Micromamba environment](#3:-Set-up-the-Micromamba-environment)
-    - [4: Make Micromamba persistent in SWAN](#4:-Make-Micromamba-persistent-in-SWAN)
-    - [5: Create a Custom Python Environment](#5:-Create-a-Custom-Python-Environment)
-    - [6: activate micromamba environment](#6:-activate-micromamba-environment)
-    - [7: Install LAMP in the environment](#7:-Install-LAMP-in-the-environment)
+- [Set up virtual environment in SWAN which supports LAMP](Set-up-virtual-environment-in-SWAN-which-supports-LAMP)
+    - [1: Clear SWAN Environment Variables](1:-clear-swan-environment-variables)
+    - [2: Install Micromamba (Lightweight Conda Replacement) if it doesn't exist](2:-Install-Micromamba-(Lightweight-Conda-Replacement)-if-it-doesn't-exist)
+    - [3: Set up the Micromamba environment](3:-Set-up-the-Micromamba-environment)
+    - [4: Make Micromamba persistent in SWAN](4:-Make-Micromamba-persistent-in-SWAN)
+    - [5: Create a Custom Python Environment](5:-Create-a-Custom-Python-Environment)
+    - [6: activate micromamba environment](6:-activate-micromamba-environment)
+    - [7: Install LAMP in the environment](7:-Install-LAMP-in-the-environment)
+    - [8: Configure Jupyter Kernel](8:-Configure-Jupyter-Kernel)
 - [Adding New Diagnostics](#adding-new-diagnostics)
 - [References](#references)
 
@@ -21,7 +22,9 @@ This repository contains analysis scripts for the Fireball III experiment. This 
     SWAN account at CERN.
 
 ## Dependencies
-    LAMP:  https://github.com/brendankettle/LAMP/tree/main
+    LAMP:  
+        pypi: https://pypi.org/project/lamp/
+        GitHub: https://github.com/brendankettle/LAMP
     scipy
     skimage
     pandas
@@ -29,6 +32,8 @@ This repository contains analysis scripts for the Fireball III experiment. This 
     opencv
 
 ## Set up virtual environment in SWAN which supports LAMP
+
+Start SWAN session, open terminal
 
 ### 1: Clear SWAN Environment Variables
 
@@ -97,42 +102,37 @@ micromamba activate <env_name>
 pip install LAMP
 ```
 
-Notes:
-
-    LAMP PyPI: https://pypi.org/project/lamp/
-
-    LAMP GitHub: https://github.com/brendankettle/LAMP
-
-Minimum working example:
-
-    Copy _local.toml and rename it local.toml.
-
-    Find the DAQ module path:
-
-python -c "import LAMP.DAQs as DAQs; print(DAQs.__path__)"
-
-    Copy FireballIII.py into the DAQ folder:
-
-cp FireballIII.py /PATH_to_DAQ/
-
-5: Configure Jupyter Kernel
+### 8: Configure Jupyter Kernel
 
     Create the SWAN kernel directory:
 
+```markdown
+```bash
 mkdir -p /home/elos/.ipython/kernels/FBIII
-
+```
     Find the Python path:
-
+    
+```markdown
+```bash
 micromamba run -n FBIII which python
+```
 # Example output:
+
+```markdown
+```bash
 /eos/home-i03/e/elos/mamba/envs/FBIII/bin/python
+```
 
     Create kernel.json:
 
+```markdown
+```bash
 nano /home/elos/.ipython/kernels/FBIII/kernel.json
+```
+inside in the file, paste:
 
-Paste:
-
+```markdown
+```bash
 {
   "argv": [
     "/eos/home-i03/e/elos/mamba/envs/FBIII/bin/python",
@@ -144,15 +144,36 @@ Paste:
   "display_name": "Python (FBIII)",
   "language": "python"
 }
+```
 
 Save with: Ctrl + O, Enter, Ctrl + X.
 
     Install the kernel so Jupyter recognizes it:
-
+```markdown
+```bash
 micromamba run -n FBIII python -m ipykernel install \
   --prefix /home/elos/.local \
   --name FBIII \
   --display-name "Python (FBIII)"
+```
+
+## Set up Fireball Github in your SWAN account
+
+Copy _local.toml and rename it local.toml.
+
+Find the DAQ module path by running the following in the terminal:
+
+```markdown
+```bash
+python -c "import LAMP.DAQs as DAQs; print(DAQs.__path__)"
+```
+
+Copy FireballIII.py into the DAQ folder:
+
+```markdown
+```bash
+cp FireballIII.py /PATH_to_DAQ/
+```
 
 Step 6: Launch SWAN Jupyter Notebook
 
