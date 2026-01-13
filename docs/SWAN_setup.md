@@ -10,7 +10,7 @@
     - [8: Configure Jupyter Kernel](#8:-Configure-Jupyter-Kernel)
     - [9: Write bash script to automatically load settings](#9:-Write-bash-script-to-automatically-load-settings)
 
-# Set up virtual environment in SWAN which supports LAMP - Only do this ONCE, to use LAMP
+# Set up virtual environment in SWAN which supports LAMP - Only do this ONCE when setting up LAMP in SWAN
 
 Start SWAN session, open terminal
 
@@ -52,22 +52,24 @@ MICROMAMBA=${MAMBA_ROOT_PREFIX}/bin/micromamba
 
 ## 4: Make Micromamba persistent in SWAN
 
+    replace <cernusername> with your CERN username
+
 ```markdown
 ```bash
-micromamba shell init --shell bash --root-prefix=/eos/home-i03/e/elos/mamba
+micromamba shell init --shell bash --root-prefix=/eos/home-i03/e/<cernusername>/mamba
 source ~/.bashrc
 ```
 
 ## 5: Create a Custom micromamba Environment
 
-Create a new environment named <env_name>:
+    Create a new environment named <env_name> (replace <env_name> with the name of your environment)
 
 ```markdown
 ```bash
 $MICROMAMBA create -p <env_name> python=3.12 ipykernel scipy matplotlib pandas scikit-image opencv toml
 ```
 
-## 6: activate micromamba environment
+## 6: Activate micromamba environment
 
 ```markdown
 ```bash
@@ -83,60 +85,63 @@ pip install LAMP
 
 ## 8: Configure Jupyter Kernel
 
-    Create the SWAN kernel directory:
+    Create the SWAN kernel directory
 
 ```markdown
 ```bash
-mkdir -p /home/elos/.ipython/kernels/FBIII
+mkdir -p /home/<cernusername>/.ipython/kernels/<env_name>
 ```
     Find the Python path:
     
 ```markdown
 ```bash
-micromamba run -n FBIII which python
+micromamba run -n <env_name> which python
 ```
     Example output:
 
 ```markdown
 ```bash
-/eos/home-i03/e/elos/mamba/envs/FBIII/bin/python
+/eos/home-i03/e/<cernusername>/mamba/envs/<env_name>/bin/python
 ```
 
     Create kernel.json:
 
 ```markdown
 ```bash
-nano /home/elos/.ipython/kernels/FBIII/kernel.json
+nano /home/<cernusername>/.ipython/kernels/<env_name>/kernel.json
 ```
 
-inside in the file, paste:
+    inside in the file, paste:
 
 ```markdown
 ```bash
 {
   "argv": [
-    "/eos/home-i03/e/elos/mamba/envs/FBIII/bin/python",
+    "/eos/home-i03/e/<cernusername>/mamba/envs/<env_name>/bin/python",
     "-m",
     "ipykernel_launcher",
     "-f",
     "{connection_file}"
   ],
-  "display_name": "Python (FBIII)",
+  "display_name": "Python <env_name>",
   "language": "python"
 }
 ```
 
-Save with: Ctrl + O, Enter, Ctrl + X.
+    Save with: Ctrl + O, Enter, Ctrl + X.
 
     Install the kernel so Jupyter recognizes it:
 ```markdown
 ```bash
 micromamba run -n FBIII python -m ipykernel install \
-  --prefix /home/elos/.local \
+  --prefix /home/<cernusername>/.local \
   --name FBIII \
-  --display-name "Python (FBIII)"
+  --display-name "Python <env_name>"
 ```
 
-when running a jupyter notebook which requires LAMP, select the kernel "Python (FBIII)" from the drop down menu
+    when running a jupyter notebook which requires LAMP, select the kernel "Python <env_name>" from the drop down menu
 
-## Write bash script to automatically load settings
+
+## Write bash script to automatically load settings when you start SWAN
+
+    
