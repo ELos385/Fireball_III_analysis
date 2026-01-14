@@ -131,7 +131,7 @@ nano /home/<cernusername>/.ipython/kernels/<env_name>/kernel.json
 ```
 
     Save with: Ctrl + O, Enter, Ctrl + X.
-
+<!-- 
     Install the kernel so Jupyter recognizes it:
 
 ```bash
@@ -139,9 +139,9 @@ micromamba run -n FBIII python -m ipykernel install \
   --prefix /home/<cernusername>/.local \
   --name FBIII \
   --display-name "Python <env_name>"
-```
+``` -->
 
-    when running a jupyter notebook which requires LAMP, select the kernel "Python <env_name>" from the drop down menu
+    
 
 
 ## Write bash script to automatically load settings in SWAN (only do this once)
@@ -164,4 +164,4 @@ open a terminal and run:
     ./setup_swan_kernel.sh
 ```
 
-    
+ When running a jupyter notebook which requires LAMP, select the kernel "Python <env_name>" from the drop down menu.   
