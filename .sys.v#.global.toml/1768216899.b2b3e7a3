@@ -1,0 +1,9 @@
+# DAQ Required as a minimum. 
+[setup]
+DAQ = FireballIII 
+
+# Required. Well, data folder at least. Data is absolute path, Others relative to Root folder.
+[paths]
+calibs_folder = './calibs/'
+#diags_folder = /Users/los/Documents/GitHub/ZEUSJan2024/configs/
+#calibs_folder = /Users/los/Documents/GitHub/ZEUSJan2024/calibs/

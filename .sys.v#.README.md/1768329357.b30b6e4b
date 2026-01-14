@@ -30,30 +30,30 @@ opencv
 
 Clone the repository into SWAN:
 
-```markdown
-```bash
-git clone https://github.com/ELos385/Fireball_III_analysis.git
-```
+    ```markdown
+    ```bash
+    git clone https://github.com/ELos385/Fireball_III_analysis.git
+    ```
 
 Next, copy _local.toml and rename it local.toml.
 
 Find the DAQ module path by running the following in the terminal:
 
-```markdown
-```bash
-python -c "import LAMP.DAQs as DAQs; print(DAQs.__path__)"
-```
+    ```markdown
+    ```bash
+    python -c "import LAMP.DAQs as DAQs; print(DAQs.__path__)"
+    ```
 
 which outputs /PATH_to_DAQ/ in the terminal
 
 Copy FireballIII.py into the DAQ folder:
 
-```markdown
-```bash
-cp FireballIII.py /PATH_to_DAQ/
-```
+    ```markdown
+    ```bash
+    cp FireballIII.py /PATH_to_DAQ/
+    ```
 
-### Fireball_III analysis github structure
+### Fireball_III_analysis github structure
 
 The Fireball_III_analysis github is structured as outlined in the LAMP documentations, please read this first.
 

@@ -9,7 +9,6 @@
     - [7: Install LAMP in the environment](#7:-Install-LAMP-in-the-environment)
     - [8: Configure Jupyter Kernel](#8:-Configure-Jupyter-Kernel)
     - [9: Write bash script to automatically load settings](#9:-Write-bash-script-to-automatically-load-settings)
-    - [10: Run bash script to automatically load settings when you start SWAN (do this at the start of every session](10:-Run-bash-script-to-automatically-load-settings-when-you-start-SWAN-(do-this-at-the-start-of-every-session)
 
 # Set up virtual environment in SWAN which supports LAMP - Only do this ONCE when setting up LAMP in SWAN
 

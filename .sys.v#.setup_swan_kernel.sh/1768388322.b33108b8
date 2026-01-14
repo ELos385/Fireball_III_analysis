@@ -1,28 +1,26 @@
 #!/bin/bash
-# One-time SWAN kernel registration script
-# Run this in a SWAN terminal once per environment
+# SWAN startup script: ensure FBIII kernel is available
 
 ENV_NAME="FBIII"
 CERN_USER="elos"
 
-# Path to micromamba
-MAMBA_ROOT="$HOME/mamba"
-MICROMAMBA="$MAMBA_ROOT/bin/micromamba"
+MAMBA_ENV="/eos/home-i03/e/${CERN_USER}/mamba/envs/${ENV_NAME}"
+PYTHON="${MAMBA_ENV}/bin/python"
 
-# Find Python inside the environment
-PYTHON="$($MICROMAMBA run -n "$ENV_NAME" which python 2>/dev/null)"
+# Path SWAN actually uses for kernels
+KERNEL_DIR="$HOME/.ipython/kernels/${ENV_NAME}"
+KERNEL_JSON="$KERNEL_DIR/kernel.json"
 
-if [ -z "$PYTHON" ] || [ ! -x "$PYTHON" ]; then
-    echo "Error: Python not found in environment '$ENV_NAME'"
-    exit 1
-fi
+# Clean SWAN environment pollution
+unset PYTHONHOME
+unset PYTHONPATH
+unset LD_LIBRARY_PATH
+unalias python &>/dev/null || true
 
-# SWAN kernel directory
-KERNEL_DIR="$HOME/.ipython/kernels/$ENV_NAME"
+# Make kernel directory if it doesn't exist
 mkdir -p "$KERNEL_DIR"
 
-# Create kernel.json
-KERNEL_JSON="$KERNEL_DIR/kernel.json"
+# Create kernel.json if missing or overwrite if needed
 cat > "$KERNEL_JSON" <<EOF
 {
   "argv": [
@@ -32,29 +30,15 @@ cat > "$KERNEL_JSON" <<EOF
     "-f",
     "{connection_file}"
   ],
-  "display_name": "Python ($ENV_NAME)",
+  "display_name": "Python (${ENV_NAME})",
   "language": "python"
 }
 EOF
 
-echo "Kernel JSON created at $KERNEL_JSON"
+echo "Kernel JSON written to $KERNEL_JSON"
 
+exit 0
 
-# Optional: register with Jupyter (user space)
-
-$MICROMAMBA run -n "${ENV_NAME}" python -m ipykernel install \
-    --prefix "/home/${CERN_USER}/.local" \
-    --name "${ENV_NAME}" \
-    --display-name "Python (${ENV_NAME})"
-
-# This is safe in SWAN; will write to ~/.local/share/jupyter/kernels
-# $MICROMAMBA run -n "$ENV_NAME" python -m ipykernel install \
-#     --user \
-#     --name "$ENV_NAME" \
-#     --display-name "Python ($ENV_NAME)" \
-#     &>/dev/null
-
-echo "Kernel '$ENV_NAME' registered. Restart Jupyter notebook to see it."
 
 # #!/bin/bash
 

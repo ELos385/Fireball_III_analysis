@@ -9,7 +9,6 @@
     - [7: Install LAMP in the environment](#7:-Install-LAMP-in-the-environment)
     - [8: Configure Jupyter Kernel](#8:-Configure-Jupyter-Kernel)
     - [9: Write bash script to automatically load settings](#9:-Write-bash-script-to-automatically-load-settings)
-    - [10: Run bash script to automatically load settings when you start SWAN (do this at the start of every session](10:-Run-bash-script-to-automatically-load-settings-when-you-start-SWAN-(do-this-at-the-start-of-every-session)
 
 # Set up virtual environment in SWAN which supports LAMP - Only do this ONCE when setting up LAMP in SWAN
 
@@ -143,15 +142,13 @@ micromamba run -n FBIII python -m ipykernel install \
     when running a jupyter notebook which requires LAMP, select the kernel "Python <env_name>" from the drop down menu
 
 
-## Write bash script to automatically load settings in SWAN (only do this once)
+## Write bash script to automatically load settings when you start SWAN
 
 open setup_swan_kernel.sh in Fireball_III_analysis
 set the following variables (replace <env_name> with the name of your environment, replace <cernusername> with your CERN username)
     
 ENV_NAME=<env_name>
 CERN_USER=<cernusername>
-    
-## Run bash script to automatically load settings when you start SWAN (do this at the start of every session)
     
 open a terminal and run:
     

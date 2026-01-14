@@ -1,28 +1,41 @@
 #!/bin/bash
-# One-time SWAN kernel registration script
-# Run this in a SWAN terminal once per environment
+# SWAN startup script: automatically register a Jupyter kernel
+# Usage:
+#   ./setup_swan_kernel.sh <env_name>
+# Example:
+#   ./setup_swan_kernel.sh FBIII
 
-ENV_NAME="FBIII"
-CERN_USER="elos"
+# -----------------------------
+# Configurable
+ENV_NAME="${1:-FBIII}"   # Default to FBIII if no argument
+# -----------------------------
+
+# Clean SWAN Python pollution
+unset PYTHONHOME
+unset PYTHONPATH
+unset LD_LIBRARY_PATH
+unalias python &>/dev/null || true
 
 # Path to micromamba
 MAMBA_ROOT="$HOME/mamba"
 MICROMAMBA="$MAMBA_ROOT/bin/micromamba"
 
-# Find Python inside the environment
+# Find the Python executable inside the environment
 PYTHON="$($MICROMAMBA run -n "$ENV_NAME" which python 2>/dev/null)"
 
 if [ -z "$PYTHON" ] || [ ! -x "$PYTHON" ]; then
-    echo "Error: Python not found in environment '$ENV_NAME'"
+    echo "Error: Could not find Python in micromamba env '$ENV_NAME'"
     exit 1
 fi
 
-# SWAN kernel directory
+# SWAN user kernel path
 KERNEL_DIR="$HOME/.ipython/kernels/$ENV_NAME"
+KERNEL_JSON="$KERNEL_DIR/kernel.json"
+
+# Create kernel directory if it doesn't exist
 mkdir -p "$KERNEL_DIR"
 
-# Create kernel.json
-KERNEL_JSON="$KERNEL_DIR/kernel.json"
+# Create kernel.json (overwrite if exists)
 cat > "$KERNEL_JSON" <<EOF
 {
   "argv": [
@@ -37,24 +50,8 @@ cat > "$KERNEL_JSON" <<EOF
 }
 EOF
 
-echo "Kernel JSON created at $KERNEL_JSON"
-
-
-# Optional: register with Jupyter (user space)
-
-$MICROMAMBA run -n "${ENV_NAME}" python -m ipykernel install \
-    --prefix "/home/${CERN_USER}/.local" \
-    --name "${ENV_NAME}" \
-    --display-name "Python (${ENV_NAME})"
-
-# This is safe in SWAN; will write to ~/.local/share/jupyter/kernels
-# $MICROMAMBA run -n "$ENV_NAME" python -m ipykernel install \
-#     --user \
-#     --name "$ENV_NAME" \
-#     --display-name "Python ($ENV_NAME)" \
-#     &>/dev/null
-
-echo "Kernel '$ENV_NAME' registered. Restart Jupyter notebook to see it."
+echo "Kernel JSON created/updated at $KERNEL_JSON"
+echo "Python path: $PYTHON"
 
 # #!/bin/bash
 

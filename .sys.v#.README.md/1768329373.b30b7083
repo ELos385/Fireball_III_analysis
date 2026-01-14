@@ -53,7 +53,7 @@ Copy FireballIII.py into the DAQ folder:
 cp FireballIII.py /PATH_to_DAQ/
 ```
 
-### Fireball_III analysis github structure
+### Fireball_III_analysis github structure
 
 The Fireball_III_analysis github is structured as outlined in the LAMP documentations, please read this first.
 

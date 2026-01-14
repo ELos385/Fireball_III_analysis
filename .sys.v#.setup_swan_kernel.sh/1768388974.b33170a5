@@ -42,7 +42,7 @@ echo "Kernel JSON created at $KERNEL_JSON"
 
 # Optional: register with Jupyter (user space)
 
-$MICROMAMBA run -n "${ENV_NAME}" python -m ipykernel install \
+micromamba run -n "${ENV_NAME}" python -m ipykernel install \
     --prefix "/home/${CERN_USER}/.local" \
     --name "${ENV_NAME}" \
     --display-name "Python (${ENV_NAME})"

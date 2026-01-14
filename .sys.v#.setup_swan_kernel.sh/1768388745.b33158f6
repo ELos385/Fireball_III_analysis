@@ -2,8 +2,8 @@
 # One-time SWAN kernel registration script
 # Run this in a SWAN terminal once per environment
 
-ENV_NAME="FBIII"
-CERN_USER="elos"
+ENV_NAME="${1:-FBIII}"  # default to FBIII if no argument
+CERN_USER="${2:-elos}"  # default username
 
 # Path to micromamba
 MAMBA_ROOT="$HOME/mamba"
@@ -39,20 +39,13 @@ EOF
 
 echo "Kernel JSON created at $KERNEL_JSON"
 
-
 # Optional: register with Jupyter (user space)
-
-$MICROMAMBA run -n "${ENV_NAME}" python -m ipykernel install \
-    --prefix "/home/${CERN_USER}/.local" \
-    --name "${ENV_NAME}" \
-    --display-name "Python (${ENV_NAME})"
-
 # This is safe in SWAN; will write to ~/.local/share/jupyter/kernels
-# $MICROMAMBA run -n "$ENV_NAME" python -m ipykernel install \
-#     --user \
-#     --name "$ENV_NAME" \
-#     --display-name "Python ($ENV_NAME)" \
-#     &>/dev/null
+$MICROMAMBA run -n "$ENV_NAME" python -m ipykernel install \
+    --user \
+    --name "$ENV_NAME" \
+    --display-name "Python ($ENV_NAME)" \
+    &>/dev/null
 
 echo "Kernel '$ENV_NAME' registered. Restart Jupyter notebook to see it."
 
