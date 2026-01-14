@@ -1,0 +1,5 @@
+[some_unique_calibration_id]
+notes = 'Some notes about this specific configuration. E.g. when we moved the CCD from X to Y'
+proc_file = 'HRM6_transform_LAMP_1749047018.pkl' # optional; if making processed calibrations
+start = {'shot':1748896255335000} # when timeframe starts
+end = {'shot':1749153428535000} # when timeframe ends

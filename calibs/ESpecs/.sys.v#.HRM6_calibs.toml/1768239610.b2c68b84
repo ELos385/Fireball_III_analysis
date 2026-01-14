@@ -1,0 +1,5 @@
+[some_unique_calibration_id]
+notes = 'Some notes about this specific configuration. E.g. when we moved the CCD from X to Y'
+proc_file = 'OutPutFileName.pkl' # optional; if making processed calibrations
+start = {date = 20240101, run = 'run01', shot = 0} # when timeframe starts
+end = {date = 20240102, run = 'run10', shot = 0} # when timeframe ends

@@ -1,0 +1,132 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "f7345905",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Initializing LAMP, version 0.1.0\n",
+      "Using DAQ: FireballIII\n",
+      "Adding (User) Diagnostic: HRM5 [ESpec_]\n",
+      "Adding (User) Diagnostic: HRM6 [ESpec_]\n"
+     ]
+    }
+   ],
+   "source": [
+    "import os, sys\n",
+    "from pathlib import Path\n",
+    "import matplotlib.pyplot as plt \n",
+    "\n",
+    "# 1. import the Experiment object from LAMP \n",
+    "from LAMP import Experiment\n",
+    "\n",
+    "ROOT_FOLDER = str(Path.cwd().parent.parent) #Path.cwd().parent.parent#Path(__file__).resolve().parents[1] # absolute path to the experiment config files and other subfolders; 2 directories up in this case (assuming script in in ./scripts/eSpec/script.py)\n",
+    "sys.path.append(ROOT_FOLDER)\n",
+    "# import diagnostics.ESpec_\n",
+    "ex = Experiment(ROOT_FOLDER)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "dfe377c5",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "2427f446",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# 3. get ESpec diagnostic object\n",
+    "HRM6 = ex.get_diagnostic('HRM6')\n",
+    "HRM5 = ex.get_diagnostic('HRM5')\n",
+    "\n",
+    "device=\"HRM6\"\n",
+    "# calib_ids={\"HRM5\":T_FORM_HRMT5, \"HRM6\":T_FORM_HRMT6}\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "36204787",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# 4. define a shot\n",
+    "shot_dict = {'shot': [1749118053]}"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "495b7695",
+   "metadata": {},
+   "outputs": [
+    {
+     "ename": "ValueError",
+     "evalue": "all input arrays must have the same shape",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[31m---------------------------------------------------------------------------\u001b[39m",
+      "\u001b[31mValueError\u001b[39m                                Traceback (most recent call last)",
+      "\u001b[36mCell\u001b[39m\u001b[36m \u001b[39m\u001b[32mIn[5]\u001b[39m\u001b[32m, line 3\u001b[39m\n\u001b[32m      1\u001b[39m \u001b[38;5;66;03m# 5. plot some processed data\u001b[39;00m\n\u001b[32m      2\u001b[39m \u001b[38;5;66;03m#devices[device].get_proc_shot(shot_dict, calib_id=calib_ids[device])\u001b[39;00m\n\u001b[32m----> \u001b[39m\u001b[32m3\u001b[39m fig, ax = \u001b[43mHRM6\u001b[49m\u001b[43m.\u001b[49m\u001b[43mplot_proc_shot\u001b[49m\u001b[43m(\u001b[49m\u001b[43mshot_dict\u001b[49m\u001b[43m)\u001b[49m\u001b[38;5;66;03m#, calib_id=calib_ids[device], debug=True)\u001b[39;00m\n\u001b[32m      4\u001b[39m plt.tight_layout()\n\u001b[32m      5\u001b[39m plt.show()\u001b[38;5;66;03m#block=True)\u001b[39;00m\n",
+      "\u001b[36mFile \u001b[39m\u001b[32m/eos/home-i03/e/elos/SWAN_projects/Fireball_III_analysis/diagnostics/ESpec_.py:741\u001b[39m, in \u001b[36mESpec_.plot_proc_shot\u001b[39m\u001b[34m(self, shot_dict, calib_id, roi_MeV, roi_mrad, vmin, vmax, colormap, colormap_cut, debug)\u001b[39m\n\u001b[32m    738\u001b[39m \u001b[38;5;28;01mdef\u001b[39;00m\u001b[38;5;250m \u001b[39m\u001b[34mplot_proc_shot\u001b[39m(\u001b[38;5;28mself\u001b[39m, shot_dict, calib_id=\u001b[38;5;28;01mNone\u001b[39;00m, roi_MeV=\u001b[38;5;28;01mNone\u001b[39;00m, roi_mrad=\u001b[38;5;28;01mNone\u001b[39;00m, vmin=\u001b[38;5;28;01mNone\u001b[39;00m, vmax=\u001b[38;5;28;01mNone\u001b[39;00m, colormap=\u001b[33m'\u001b[39m\u001b[33melectron_beam\u001b[39m\u001b[33m'\u001b[39m, colormap_cut=\u001b[32m5\u001b[39m, debug=\u001b[38;5;28;01mFalse\u001b[39;00m):\n\u001b[32m    739\u001b[39m \n\u001b[32m    740\u001b[39m     \u001b[38;5;66;03m# below still assumes X = spectral, Y =  divergence\u001b[39;00m\n\u001b[32m--> \u001b[39m\u001b[32m741\u001b[39m     espec_img, x, y = \u001b[38;5;28;43mself\u001b[39;49m\u001b[43m.\u001b[49m\u001b[43mget_proc_shot\u001b[49m\u001b[43m(\u001b[49m\u001b[43mshot_dict\u001b[49m\u001b[43m,\u001b[49m\u001b[43mcalib_id\u001b[49m\u001b[43m=\u001b[49m\u001b[43mcalib_id\u001b[49m\u001b[43m,\u001b[49m\u001b[43mroi_MeV\u001b[49m\u001b[43m=\u001b[49m\u001b[43mroi_MeV\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mroi_mrad\u001b[49m\u001b[43m=\u001b[49m\u001b[43mroi_mrad\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mdebug\u001b[49m\u001b[43m=\u001b[49m\u001b[43mdebug\u001b[49m\u001b[43m)\u001b[49m\n\u001b[32m    743\u001b[39m     \u001b[38;5;28;01mif\u001b[39;00m vmin \u001b[38;5;129;01mis\u001b[39;00m \u001b[38;5;28;01mNone\u001b[39;00m:\n\u001b[32m    744\u001b[39m         vmin = np.nanmin(espec_img)\n",
+      "\u001b[36mFile \u001b[39m\u001b[32m/eos/home-i03/e/elos/SWAN_projects/Fireball_III_analysis/diagnostics/ESpec_.py:57\u001b[39m, in \u001b[36mESpec_.get_proc_shot\u001b[39m\u001b[34m(self, shot_dict, calib_id, apply_disp, apply_div, apply_charge, roi_mm, roi_MeV, roi_mrad, debug)\u001b[39m\n\u001b[32m     53\u001b[39m \u001b[38;5;66;03m# TO DO: roi_mm? only use if not setting dispersion or divergence below...\u001b[39;00m\n\u001b[32m     54\u001b[39m \n\u001b[32m     55\u001b[39m \u001b[38;5;66;03m# dispersion?\u001b[39;00m\n\u001b[32m     56\u001b[39m \u001b[38;5;28;01mif\u001b[39;00m apply_disp \u001b[38;5;129;01mand\u001b[39;00m \u001b[33m'\u001b[39m\u001b[33mdispersion\u001b[39m\u001b[33m'\u001b[39m \u001b[38;5;129;01min\u001b[39;00m \u001b[38;5;28mself\u001b[39m.calib_dict:\n\u001b[32m---> \u001b[39m\u001b[32m57\u001b[39m     MeV=\u001b[38;5;28;43mself\u001b[39;49m\u001b[43m.\u001b[49m\u001b[43mmake_dispersion\u001b[49m\u001b[43m(\u001b[49m\u001b[38;5;28;43mself\u001b[39;49m\u001b[43m.\u001b[49m\u001b[43mcalib_dict\u001b[49m\u001b[43m[\u001b[49m\u001b[33;43m'\u001b[39;49m\u001b[33;43mdispersion\u001b[39;49m\u001b[33;43m'\u001b[39;49m\u001b[43m]\u001b[49m\u001b[43m)\u001b[49m\n\u001b[32m     58\u001b[39m     img, MeV = \u001b[38;5;28mself\u001b[39m.apply_dispersion(img, \u001b[38;5;28mself\u001b[39m.calib_dict[\u001b[33m'\u001b[39m\u001b[33mdispersion\u001b[39m\u001b[33m'\u001b[39m])\n\u001b[32m     60\u001b[39m     \u001b[38;5;66;03m# default to applying to X axis unless set\u001b[39;00m\n",
+      "\u001b[36mFile \u001b[39m\u001b[32m/eos/home-i03/e/elos/SWAN_projects/Fireball_III_analysis/diagnostics/ESpec_.py:411\u001b[39m, in \u001b[36mESpec_.make_dispersion\u001b[39m\u001b[34m(self, disp_dict, debug)\u001b[39m\n\u001b[32m    409\u001b[39m     disp_spat=disp_dict[\u001b[33m\"\u001b[39m\u001b[33mx_mm\u001b[39m\u001b[33m\"\u001b[39m]\n\u001b[32m    410\u001b[39m     disp_spec=disp_dict[\u001b[33m\"\u001b[39m\u001b[33mMeV\u001b[39m\u001b[33m\"\u001b[39m]\n\u001b[32m--> \u001b[39m\u001b[32m411\u001b[39m     disp_curve=\u001b[43mnp\u001b[49m\u001b[43m.\u001b[49m\u001b[43mstack\u001b[49m\u001b[43m(\u001b[49m\u001b[43m(\u001b[49m\u001b[43mdisp_spec\u001b[49m\u001b[43m,\u001b[49m\u001b[43mdisp_spat\u001b[49m\u001b[43m)\u001b[49m\u001b[43m,\u001b[49m\u001b[43maxis\u001b[49m\u001b[43m=\u001b[49m\u001b[32;43m0\u001b[39;49m\u001b[43m)\u001b[49m\n\u001b[32m    412\u001b[39m     disp_dict[\u001b[33m'\u001b[39m\u001b[33mfilename\u001b[39m\u001b[33m'\u001b[39m]=\u001b[38;5;28;01mNone\u001b[39;00m\n\u001b[32m    414\u001b[39m \u001b[38;5;28;01mif\u001b[39;00m \u001b[33m\"\u001b[39m\u001b[33mangle to normal (rad)\u001b[39m\u001b[33m\"\u001b[39m \u001b[38;5;129;01min\u001b[39;00m disp_dict:\n",
+      "\u001b[36mFile \u001b[39m\u001b[32m/eos/home-i03/e/elos/mamba/envs/FBIII/lib/python3.12/site-packages/numpy/_core/shape_base.py:458\u001b[39m, in \u001b[36mstack\u001b[39m\u001b[34m(arrays, axis, out, dtype, casting)\u001b[39m\n\u001b[32m    456\u001b[39m shapes = {arr.shape \u001b[38;5;28;01mfor\u001b[39;00m arr \u001b[38;5;129;01min\u001b[39;00m arrays}\n\u001b[32m    457\u001b[39m \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mlen\u001b[39m(shapes) != \u001b[32m1\u001b[39m:\n\u001b[32m--> \u001b[39m\u001b[32m458\u001b[39m     \u001b[38;5;28;01mraise\u001b[39;00m \u001b[38;5;167;01mValueError\u001b[39;00m(\u001b[33m'\u001b[39m\u001b[33mall input arrays must have the same shape\u001b[39m\u001b[33m'\u001b[39m)\n\u001b[32m    460\u001b[39m result_ndim = arrays[\u001b[32m0\u001b[39m].ndim + \u001b[32m1\u001b[39m\n\u001b[32m    461\u001b[39m axis = normalize_axis_index(axis, result_ndim)\n",
+      "\u001b[31mValueError\u001b[39m: all input arrays must have the same shape"
+     ]
+    }
+   ],
+   "source": [
+    "# 5. plot some processed data\n",
+    "#devices[device].get_proc_shot(shot_dict, calib_id=calib_ids[device])\n",
+    "fig, ax = HRM6.plot_proc_shot(shot_dict)#, calib_id=calib_ids[device], debug=True)\n",
+    "plt.tight_layout()\n",
+    "plt.show()#block=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "1e8f3706",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "@webio": {
+   "lastCommId": null,
+   "lastKernelId": null
+  },
+  "kernelspec": {
+   "display_name": "Python (FBIII)",
+   "language": "python",
+   "name": "fbiii"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.12"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
