@@ -19,7 +19,7 @@ Start SWAN session, open terminal
 
 Create a script in your home directory called setup_custom_kernel.sh:
 
-```markdown
+
 ```bash
 #!/bin/bash
 # Clear interfering environment variables
@@ -33,7 +33,7 @@ This ensures that SWAN’s default Python environment does not interfere with yo
 
 ## 2: Install Micromamba (Lightweight Conda Replacement) if it doesn't exist
 
-```markdown
+
 ```bash
 if [ ! -f "${MICROMAMBA}" ]; then
     mkdir -p $(dirname ${MICROMAMBA})
@@ -45,7 +45,7 @@ fi
 
 ## 3: Set up the Micromamba environment
 
-```markdown
+
 ```bash
 export MAMBA_ROOT_PREFIX=${HOME}/mamba
 MICROMAMBA=${MAMBA_ROOT_PREFIX}/bin/micromamba
@@ -55,7 +55,7 @@ MICROMAMBA=${MAMBA_ROOT_PREFIX}/bin/micromamba
 
     replace <cernusername> with your CERN username
 
-```markdown
+
 ```bash
 micromamba shell init --shell bash --root-prefix=/eos/home-i03/e/<cernusername>/mamba
 source ~/.bashrc
@@ -65,21 +65,21 @@ source ~/.bashrc
 
     Create a new environment named <env_name> (replace <env_name> with the name of your environment)
 
-```markdown
+
 ```bash
 $MICROMAMBA create -p <env_name> python=3.12 ipykernel scipy matplotlib pandas scikit-image opencv toml
 ```
 
 ## 6: Activate micromamba environment
 
-```markdown
+
 ```bash
 micromamba activate <env_name>
 ```
 
 ## 7: Install LAMP in the environment
 
-```markdown
+
 ```bash
 pip install LAMP
 ```
@@ -88,13 +88,13 @@ pip install LAMP
 
     Create the SWAN kernel directory
 
-```markdown
+
 ```bash
 mkdir -p /home/<cernusername>/.ipython/kernels/<env_name>
 ```
     Find the Python path:
     
-```markdown
+
 ```bash
 micromamba run -n <env_name> which python
 ```
