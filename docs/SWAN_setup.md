@@ -92,6 +92,7 @@ pip install LAMP
 ```bash
 mkdir -p /home/<cernusername>/.ipython/kernels/<env_name>
 ```
+    
     Find the Python path:
     
 
@@ -100,21 +101,21 @@ micromamba run -n <env_name> which python
 ```
     Example output:
 
-```markdown
+
 ```bash
 /eos/home-i03/e/<cernusername>/mamba/envs/<env_name>/bin/python
 ```
 
     Create kernel.json:
 
-```markdown
+
 ```bash
 nano /home/<cernusername>/.ipython/kernels/<env_name>/kernel.json
 ```
 
     inside in the file, paste:
 
-```markdown
+
 ```bash
 {
   "argv": [
@@ -132,7 +133,7 @@ nano /home/<cernusername>/.ipython/kernels/<env_name>/kernel.json
     Save with: Ctrl + O, Enter, Ctrl + X.
 
     Install the kernel so Jupyter recognizes it:
-```markdown
+
 ```bash
 micromamba run -n FBIII python -m ipykernel install \
   --prefix /home/<cernusername>/.local \
@@ -145,17 +146,19 @@ micromamba run -n FBIII python -m ipykernel install \
 
 ## Write bash script to automatically load settings in SWAN (only do this once)
 
-open setup_swan_kernel.sh in Fireball_III_analysis
+Open setup_swan_kernel.sh in Fireball_III_analysis
 set the following variables (replace <env_name> with the name of your environment, replace <cernusername> with your CERN username)
-    
+
+```bash
 ENV_NAME=<env_name>
 CERN_USER=<cernusername>
+```
     
 ## Run bash script to automatically load settings when you start SWAN (do this at the start of every session)
     
 open a terminal and run:
     
-```markdown
+
 ```bash
     chmod +x setup_swan_kernel.sh
     ./setup_swan_kernel.sh
