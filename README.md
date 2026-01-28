@@ -29,13 +29,13 @@ Copy _local.toml and rename it local.toml.
 
 scipy
 
-skimage
+scikit-image
 
 pandas
 
 toml
 
-opencv
+opencv-python
 
 LAMP 
 
