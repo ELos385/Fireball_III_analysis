@@ -57,7 +57,7 @@ Commit your changes (do this often :))
 ```bash
 git status
 git add path/to/changed_files.py
-git commit -m "Add MyDiagnostic class"
+git commit -m "Some text explaining the changes you've made"
 ```
 
 You can always commit locally, and you do not need to pull before committing.
