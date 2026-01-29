@@ -1,11 +1,11 @@
 #!/bin/bash
 # -----------------------------------------------
 # setup_swan_lamp.sh
-# 
+#
 # Usage: ./setup_swan_lamp.sh
-# This script sets up a SWAN-ready Python environment
-# with LAMP and registers a Jupyter kernel.
 # -----------------------------------------------
+
+set -euo pipefail
 
 # -----------------------------
 # Configuration - CHANGE THESE
@@ -17,12 +17,16 @@ MAMBA_ROOT_PREFIX="${HOME}/mamba"
 MICROMAMBA="${MAMBA_ROOT_PREFIX}/bin/micromamba"
 KERNEL_DIR="${HOME}/.ipython/kernels/${ENV_NAME}"
 
+# Always locate files relative to this script (so first run works from any cwd)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SRC_FIREBALL="${SCRIPT_DIR}/FireballIII.py"
+
 # -----------------------------
-# 1: Clear SWAN Environment Variables
+# 1: Clear SWAN Environment Variables (current shell only)
 # -----------------------------
-unset PYTHONHOME
-unset PYTHONPATH
-unset LD_LIBRARY_PATH
+unset PYTHONHOME || true
+unset PYTHONPATH || true
+unset LD_LIBRARY_PATH || true
 unalias python &>/dev/null || true
 
 echo "Cleared SWAN environment variables..."
@@ -33,7 +37,7 @@ echo "Cleared SWAN environment variables..."
 if [ ! -f "${MICROMAMBA}" ]; then
     echo "Installing micromamba..."
     mkdir -p "$(dirname "${MICROMAMBA}")"
-    cd "${MAMBA_ROOT_PREFIX}" || exit 1
+    cd "${MAMBA_ROOT_PREFIX}"
     wget -qO- https://micromamba.snakepit.net/api/micromamba/linux-64/latest \
       | tar -xvj bin/micromamba
 else
@@ -41,7 +45,7 @@ else
 fi
 
 # -----------------------------
-# 3: Make micromamba persistent
+# 3: Initialize micromamba for this shell
 # -----------------------------
 eval "$(${MICROMAMBA} shell hook --shell=bash)"
 echo "Micromamba initialized."
@@ -51,38 +55,38 @@ echo "Micromamba initialized."
 # -----------------------------
 if [ ! -d "${MAMBA_ROOT_PREFIX}/envs/${ENV_NAME}" ]; then
     echo "Creating environment ${ENV_NAME}..."
-    ${MICROMAMBA} create -y -p "${MAMBA_ROOT_PREFIX}/envs/${ENV_NAME}" \
-        python=${PYTHON_VERSION} ipykernel scipy matplotlib pandas scikit-image opencv toml
+    ${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" create -y -n "${ENV_NAME}" \
+        python="${PYTHON_VERSION}" ipykernel scipy matplotlib pandas scikit-image opencv toml
 else
     echo "Environment ${ENV_NAME} already exists."
 fi
 
 # -----------------------------
-# 5: Activate environment
+# 5: Activate environment (ensure shell integration is set)
 # -----------------------------
 echo "Activating environment ${ENV_NAME}..."
-eval "$(${MICROMAMBA} shell hook --shell=bash)"
-micromamba activate "${ENV_NAME}"
+eval "$(${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" shell hook --shell=bash)"
+${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" activate "${ENV_NAME}"
 
 # -----------------------------
 # 6: Install LAMP if missing
 # -----------------------------
 echo "Checking if LAMP is installed..."
-if ! micromamba run -n "${ENV_NAME}" python -c "import LAMP" &>/dev/null; then
+if ! ${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" run -n "${ENV_NAME}" python -c "import LAMP" &>/dev/null; then
     echo "LAMP not found. Installing..."
-    micromamba run -n "${ENV_NAME}" pip install --upgrade pip
-    micromamba run -n "${ENV_NAME}" pip install LAMP
+    ${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" run -n "${ENV_NAME}" python -m pip install --upgrade pip
+    ${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" run -n "${ENV_NAME}" python -m pip install LAMP
 else
     echo "LAMP is already installed."
 fi
 
 # -----------------------------
-# 7: Configure Jupyter kernel
+# 7: Configure Jupyter kernel (both kernelspec locations)
 # -----------------------------
 echo "Setting up Jupyter kernel..."
 mkdir -p "${KERNEL_DIR}"
 
-PYTHON_PATH=$(micromamba run -n "${ENV_NAME}" which python)
+PYTHON_PATH=$(${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" run -n "${ENV_NAME}" which python)
 KERNEL_JSON="${KERNEL_DIR}/kernel.json"
 
 cat > "${KERNEL_JSON}" <<EOL
@@ -100,38 +104,42 @@ cat > "${KERNEL_JSON}" <<EOL
 EOL
 
 # Register kernel so Jupyter can see it
-micromamba run -n ${ENV_NAME} python -m ipykernel install \
-  --prefix /home/${CERN_USER}/.local \
-  --name ${ENV_NAME} \
+${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" run -n "${ENV_NAME}" python -m ipykernel install \
+  --prefix "/home/${CERN_USER}/.local" \
+  --name "${ENV_NAME}" \
   --display-name "Python ${ENV_NAME}"
-  
+
 # -----------------------------
-# 7b: Copy FireballIII.py into LAMP DAQs folder if not already there
+# 7b: Copy FireballIII.py into LAMP DAQs folder (robust)
 # -----------------------------
 echo "Checking if FireballIII.py exists in LAMP.DAQs folder..."
 
-# Get DAQ_PATH, ignoring LAMP startup message
-DAQ_PATH=$(micromamba run -n "${ENV_NAME}" python - <<'PYTHON_EOF'
+if [ ! -f "${SRC_FIREBALL}" ]; then
+    echo "Error: ${SRC_FIREBALL} not found."
+    echo "Put FireballIII.py in the same directory as this script (or update SRC_FIREBALL)."
+    exit 1
+fi
+
+DAQ_PATH=$(${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" run -n "${ENV_NAME}" python - <<'PY'
 import os
 import LAMP.DAQs as DAQs
-# Only print the first path
 print(os.path.abspath(DAQs.__path__[0]))
-PYTHON_EOF
+PY
 )
 
-# Take only the last line in case LAMP prints messages before
-DAQ_PATH=$(echo "$DAQ_PATH" | tail -n 1 | tr -d '[:space:]')
+# Keep the last non-empty line, trim whitespace
+DAQ_PATH=$(echo "${DAQ_PATH}" | awk 'NF{line=$0} END{print line}' | tr -d '[:space:]')
 
-# Check and copy FireballIII.py only if necessary
-if [ -d "${DAQ_PATH}" ]; then
-    if [ ! -f "${DAQ_PATH}/FireballIII.py" ]; then
-        cp FireballIII.py "${DAQ_PATH}/"
-        echo "FireballIII.py copied to ${DAQ_PATH}"
-    else
-        echo "FireballIII.py already exists in ${DAQ_PATH}, skipping copy."
-    fi
+if [ -z "${DAQ_PATH}" ] || [ ! -d "${DAQ_PATH}" ]; then
+    echo "Error: LAMP.DAQs folder not found / DAQ_PATH invalid: '${DAQ_PATH}'" >&2
+    exit 1
+fi
+
+if [ -f "${DAQ_PATH}/FireballIII.py" ]; then
+    echo "FireballIII.py already exists in ${DAQ_PATH}, skipping copy."
 else
-    echo "Error: LAMP.DAQs folder not found at ${DAQ_PATH}"
+    cp -- "${SRC_FIREBALL}" "${DAQ_PATH}/"
+    echo "FireballIII.py successfully copied to ${DAQ_PATH}"
 fi
 
 echo "Setup complete! You can now select 'Python (${ENV_NAME})' in Jupyter."
