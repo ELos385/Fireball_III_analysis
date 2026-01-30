@@ -99,8 +99,9 @@ PYTHON_PATH=$(${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" run -n "${ENV_NAME}" which
 #EOL
 
 # Register kernel so Jupyter can see it
+#ENV_PREFIX="$(${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" env list | awk '$1=="'"${ENV_NAME}"'" {print $2; exit}')"
 ${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" run -n "${ENV_NAME}" python -m ipykernel install \
-  --prefix "${HOME}/.local" \
+  --prefix "/home/${USER}/.local" \
   --name "${ENV_NAME}" \
   --display-name "Python ${ENV_NAME}"
 
