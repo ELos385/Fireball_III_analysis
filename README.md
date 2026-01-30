@@ -49,11 +49,10 @@ LAMP
 Only do this if you are using SWAN. 
 
 
-Open ```setup_pyenv.sh``` in ```Fireball_III_analysis```. Set ```ENV_NAME``` and ```CERN_USER``` to the name you want to use for your python environment and your CERN username respectively:
+Open ```setup_pyenv.sh``` in ```Fireball_III_analysis```. Set ```ENV_NAME``` to name your environment (e.g. ```"FBIII"```):
 
 ```bash
-ENV_NAME=<env_name>
-CERN_USER=<cernusername>
+ENV_NAME="FBIII"
 ```
 
 save the file.
