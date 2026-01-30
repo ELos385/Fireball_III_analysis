@@ -11,11 +11,12 @@ set -euo pipefail
 # Configuration - CHANGE THESE
 # -----------------------------
 ENV_NAME="FBIII"                 # Name of your custom environment
-CERN_USER="elos"                 # Your CERN username
 PYTHON_VERSION="3.12"            # Python version for environment
 MAMBA_ROOT_PREFIX="${HOME}/mamba"
 MICROMAMBA="${MAMBA_ROOT_PREFIX}/bin/micromamba"
-KERNEL_DIR="${HOME}/.ipython/kernels/${ENV_NAME}"
+# KERNEL_DIR="${HOME}/.ipython/kernels/${ENV_NAME}"
+export MAMBA_ROOT_PREFIX="${MAMBA_ROOT_PREFIX}"
+export MICROMAMBA_ROOT_PREFIX="${MAMBA_ROOT_PREFIX}"
 
 # Always locate files relative to this script (so first run works from any cwd)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -36,7 +37,8 @@ echo "Cleared SWAN environment variables..."
 # -----------------------------
 if [ ! -f "${MICROMAMBA}" ]; then
     echo "Installing micromamba..."
-    mkdir -p "$(dirname "${MICROMAMBA}")"
+    #mkdir -p "$(dirname "${MICROMAMBA}")"
+    mkdir -p "${MAMBA_ROOT_PREFIX}"
     cd "${MAMBA_ROOT_PREFIX}"
     wget -qO- https://micromamba.snakepit.net/api/micromamba/linux-64/latest \
       | tar -xvj bin/micromamba
@@ -47,7 +49,7 @@ fi
 # -----------------------------
 # 3: Initialize micromamba for this shell
 # -----------------------------
-eval "$(${MICROMAMBA} shell hook --shell=bash)"
+eval "$(${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" shell hook --shell=bash)"
 echo "Micromamba initialized."
 
 # -----------------------------
@@ -62,14 +64,7 @@ else
 fi
 
 # -----------------------------
-# 5: Activate environment (ensure shell integration is set)
-# -----------------------------
-echo "Activating environment ${ENV_NAME}..."
-eval "$(${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" shell hook --shell=bash)"
-${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" activate "${ENV_NAME}"
-
-# -----------------------------
-# 6: Install LAMP if missing
+# 5: Install LAMP if missing
 # -----------------------------
 echo "Checking if LAMP is installed..."
 if ! ${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" run -n "${ENV_NAME}" python -c "import LAMP" &>/dev/null; then
@@ -81,36 +76,36 @@ else
 fi
 
 # -----------------------------
-# 7: Configure Jupyter kernel (both kernelspec locations)
+# 6: Configure Jupyter kernel (both kernelspec locations)
 # -----------------------------
 echo "Setting up Jupyter kernel..."
-mkdir -p "${KERNEL_DIR}"
+#mkdir -p "${KERNEL_DIR}"
 
 PYTHON_PATH=$(${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" run -n "${ENV_NAME}" which python)
-KERNEL_JSON="${KERNEL_DIR}/kernel.json"
+#KERNEL_JSON="${KERNEL_DIR}/kernel.json"
 
-cat > "${KERNEL_JSON}" <<EOL
-{
-  "argv": [
-    "${PYTHON_PATH}",
-    "-m",
-    "ipykernel_launcher",
-    "-f",
-    "{connection_file}"
-  ],
-  "display_name": "Python (${ENV_NAME})",
-  "language": "python"
-}
-EOL
+#cat > "${KERNEL_JSON}" <<EOL
+#{
+#  "argv": [
+#    "${PYTHON_PATH}",
+#    "-m",
+#    "ipykernel_launcher",
+#    "-f",
+#    "{connection_file}"
+#  ],
+#  "display_name": "Python (${ENV_NAME})",
+#  "language": "python"
+#}
+#EOL
 
 # Register kernel so Jupyter can see it
 ${MICROMAMBA} -r "${MAMBA_ROOT_PREFIX}" run -n "${ENV_NAME}" python -m ipykernel install \
-  --prefix "/home/${CERN_USER}/.local" \
+  --prefix "${HOME}/.local" \
   --name "${ENV_NAME}" \
   --display-name "Python ${ENV_NAME}"
 
 # -----------------------------
-# 7b: Copy FireballIII.py into LAMP DAQs folder (robust)
+# 6b: Copy FireballIII.py into LAMP DAQs folder (robust)
 # -----------------------------
 echo "Checking if FireballIII.py exists in LAMP.DAQs folder..."
 
