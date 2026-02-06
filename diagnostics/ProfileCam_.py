@@ -44,4 +44,47 @@ class ProfileCam_(Diagnostic):
         if img is None:
             return None, None, None
 
+        # ========================================
+        # crop images around edge of Chromox screen
+        # ik this should probably go in calib, but i cba
+        # ========================================
+        
+        crop = None
+        if self.config["name"] == "HRM3":
+            crop = [215, 400, 50, 300]    # [xmin, xmax, ymin, ymax]
+        elif self.config["name"] == "HRM4":
+            crop = [180, 450, 0, 375]    # [xmin, xmax, ymin, ymax]
+        else:
+            print("what r u doing")
+
+        if crop:
+            img = img[crop[2] : crop[3], crop[0] : crop[1]]
+            y, x = np.shape(img)
+        
         return img, x, y
+
+
+
+
+    def plot_proc_shot(self, shot_dict, calib_id=None, vmin=None, vmax=None, colormap='plasma', debug=False):
+        """
+        super().plot_proc_shot() actually just doesnt work so ill overwrite it
+        """
+
+        img, x, y = self.get_proc_shot(shot_dict, calib_id=calib_id, debug=debug)
+
+        if vmin is None:
+            vmin = np.nanmin(img)
+        if vmax is None:
+            #vmax = np.nanmax(img)
+            vmax = np.percentile(img,99)
+
+
+        fig,ax = plt.subplots(figsize=(10,10))
+        im = ax.imshow(img, vmin=vmin, vmax=vmax, cmap=get_colormap(colormap))
+        cb = plt.colorbar(im)
+        plt.title(self.shot_string(shot_dict))
+        plt.tight_layout()
+        plt.show(block=False)
+
+        return fig, plt.gca()
