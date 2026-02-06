@@ -1,3 +1,11 @@
 local.toml
 *.sys*
 .swanproject
+setup_pyenv_old.sh
+setup_pyenv_test.sh
+venv
+fbiii_venv
+fbiii_env
+__pycache__/
+*.pyc
+
