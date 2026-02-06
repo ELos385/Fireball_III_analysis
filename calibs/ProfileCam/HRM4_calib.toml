@@ -1,0 +1,4 @@
+[1748896255335000]
+notes = 'copied Evas for now'
+start = {'shot' = 1748896255335000} # when timeframe starts
+end = {'shot' = 1749153428535000} # when timeframe ends

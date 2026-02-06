@@ -1,0 +1,4 @@
+[1748896255335000]
+notes = 'stolen from Evas'
+start = {'shot' = 1748896255335000} # when timeframe starts
+end = {'shot' = 1749153428535000} # when timeframe ends
