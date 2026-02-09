@@ -1,4 +1,11 @@
-[1748896255335000]
-notes = 'stolen from Evas'
+[1749111996135000]
+notes = ''
 start = {'shot' = 1748896255335000} # when timeframe starts
 end = {'shot' = 1749153428535000} # when timeframe ends
+
+[1749111996135000.roi]
+stage = "original"
+pixels = [
+    [215, 50],
+    [400, 300]
+]
