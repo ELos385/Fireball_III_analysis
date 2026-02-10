@@ -1,9 +1,9 @@
-# Fireball III Analysis Github
+# Fireball III Analysis repo
 
 This repository contains analysis scripts for the Fireball III experiment. This repository requires the pypi module LAMP to run. Please see "SWAN ONLY setup pyenv with LAMP in SWAN - do this every time you re-start SWAN" for instructions on how to set up a custom Python environment on SWAN and install dependencies, including LAMP.
 
 ## Table of Contents
-- [Installation](#nstallation)
+- [Installation](#Installation)
     - [Setting up the Fireball Github](#Set-up-Fireball-Githu)
     - [SWAN ONLY setup python environment with LAMP in SWAN - do this every time you re-start SWAN](SWAN-ONLY-setup-python-environment-with-LAMP-in-SWAN---do-this-every-time-you-re-start-SWAN)
     - [Installation on a local machine](#Installation-on-local-machine)
