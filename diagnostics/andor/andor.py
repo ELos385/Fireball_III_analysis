@@ -10,14 +10,14 @@ from LAMP.utils.image_proc import ImageProc
 from LAMP.utils.general import dict_update, mindex
 from LAMP.utils.plotting import *
 
-class ESpec_(Diagnostic):
-    """Electron (charged particle?) Spectrometer.
+class Andor(Diagnostic):
+    """Andor Spectrometer.
         TODO: Tracking sims
         TODO: Two screens?
     """
 
     __version = 0.1
-    __authors = ['Brendan Kettle']
+    __authors = ['Brendan Kettle', 'Maximilian Mudra']
     __requirements = 'cv2'
     data_type = 'csv'
 
@@ -25,7 +25,8 @@ class ESpec_(Diagnostic):
     # also, sticking to the same units (mm/MeV/mrad) helps make it easier to convert from different calibrations and simplify plotting
     curr_img = None
     img_units = ['Counts']
-    x_mm, y_mm = None, None
+    # x_mm, y_mm = None, None
+    x_pixel, y=pixel = None, None
     x_mrad, y_mrad = None, None
     x_MeV, y_MeV = None, None
 
@@ -256,32 +257,6 @@ class ESpec_(Diagnostic):
         E_percentile = np.interp(target_percentile, percentile_cut, energy_cut)
 
         return E_mean, E_std, E_percentile 
-    
-    # def mean_and_std_beam_energy(self,img_raw):
-    #     """ Gets mean and std of electron energy. Returns electron energy at 90th percentile of charge distribution.
-    #     """
-    #     img_pC_permm2 = self.espec_data2screen(img_raw)
-    #     img_pC_per_MeV = np.trapz(self.espec_screen2spec(img_pC_permm2), self.screen_y_mm, axis=0)
-    #     spec_charge_dist= img_pC_per_MeV/np.trapz(img_pC_per_MeV, self.eAxis_MeV)
-    #     spec_charge_dist[spec_charge_dist<=0]=0.0
-    #     mean_energy = np.trapz(spec_charge_dist*self.eAxis_MeV, self.eAxis_MeV)
-    #     #Exp_energy_sqrd = np.trapz(spec_charge_dist*self.eAxis_MeV**2, self.eAxis_MeV)
-    #     variance = np.trapz(spec_charge_dist*(self.eAxis_MeV-mean_energy)**2, self.eAxis_MeV)
-
-    #     div=10.0
-    #     N=int(len(spec_charge_dist)/div)
-    #     percentile, energy=np.zeros(N), np.zeros(N)
-    #     target_percentile=0.9
-
-    #     for i in range(0, N):
-    #         percentile[i]=np.trapz(spec_charge_dist[0:len(self.eAxis_MeV)-1-int(div)*i], self.eAxis_MeV[0:len(self.eAxis_MeV)-1-int(div)*i])
-    #         energy[i]=self.eAxis_MeV[len(self.eAxis_MeV)-1-int(div)*i]
-    #         if percentile[i]<target_percentile-0.05:
-    #             break
-    #     percentile_cut=percentile[percentile!=0.0]
-    #     energy_cut=energy[percentile!=0.0]
-    #     energy_at_90th_percentile=np.interp(target_percentile, percentile_cut, energy_cut)
-    #     return np.array([mean_energy, variance**0.5, energy_at_90th_percentile])
     
     def get_spectra_metrics(self, timeframe, calib_id=None, roi_MeV=None, roi_mrad=None, percentile=95, debug=False):
         """"""
