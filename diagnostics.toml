@@ -1,7 +1,7 @@
 [HRM5]
 type = 'ESpec_'
-data_folder = '/chromox_cameras/HRM5/' 
-data_stem = 'OD' # empty for some DAQs 
+data_folder = '/chromox_cameras/HRM5/'
+data_stem = 'OD' # empty for some DAQs
 data_type = 'csv'
 data_ext = '.csv'
 calib_subfolder = './ESpecs/' # optional
@@ -9,9 +9,18 @@ calib_file = 'HRM5_calibs.toml'#'HRM5_transform_LAMP_1749111754935000.pkl'
 
 [HRM6]
 type = 'ESpec_'
-data_folder = '/chromox_cameras/HRM6/' 
-data_stem = 'OD' # empty for some DAQs 
+data_folder = '/chromox_cameras/HRM6/'
+data_stem = 'OD' # empty for some DAQs
 data_type = 'csv'
 data_ext = '.csv'
 calib_subfolder = './ESpecs/' # optional
 calib_file = 'HRM6_calibs.toml'#'HRM6_transform_LAMP_1749111754935000.pkl'
+
+[andor]
+type = 'ESpec_'
+data_folder = '/tagged_data/andor/'
+data_stem = 'OD' # empty for some DAQs
+data_type = 'asc'
+data_ext = '.csv'
+calib_subfolder = './andor/' # optional
+calib_file = 'andor_calibs.toml'
