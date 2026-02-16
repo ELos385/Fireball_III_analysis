@@ -15,3 +15,12 @@ data_type = 'csv'
 data_ext = '.csv'
 calib_subfolder = './ESpecs/' # optional
 calib_file = 'HRM6_calibs.toml'#'HRM6_transform_LAMP_1749111754935000.pkl'
+
+[faraday-rotation]
+type = 'ESpec_'
+data_folder = '/chromox_cameras/HRM6/' 
+data_stem = 'OD' # empty for some DAQs 
+data_type = 'csv'
+data_ext = '.csv'
+calib_subfolder = './ESpecs/' # optional
+calib_file = 'HRM6_calibs.toml'#'HRM6_transform_LAMP_1749111754935000.pkl'
