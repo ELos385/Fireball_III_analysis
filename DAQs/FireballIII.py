@@ -71,6 +71,12 @@ class FireballIII(DAQ):
             
             parts = np.array([int(filename.replace('.csv', '').split('_')[4][0:10]) for filename in csv_files])
             
+            print(f"shot_dict: {shot_dict}")
+            print(f"parts: {parts}")
+
+
+
+
             #shot_no_=shot_dict["shot"]
             closest_indxs=np.array([np.argmin(abs(parts-int(str(shot_no)[0:10]))) for shot_no in shot_dict["shot"]])
 
