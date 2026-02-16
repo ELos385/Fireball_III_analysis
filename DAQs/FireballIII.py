@@ -74,9 +74,6 @@ class FireballIII(DAQ):
             print(f"shot_dict: {shot_dict}")
             print(f"parts: {parts}")
 
-
-
-
             #shot_no_=shot_dict["shot"]
             closest_indxs=np.array([np.argmin(abs(parts-int(str(shot_no)[0:10]))) for shot_no in shot_dict["shot"]])
 
@@ -94,7 +91,6 @@ class FireballIII(DAQ):
                     shot_data = np.array(self.load_csv_image(shot_filepath)["IMG"])
                 else:
                     print('Non-image data loading not yet supported... probably need to add text at least?')
-
 
         # raw filepath?
         else:

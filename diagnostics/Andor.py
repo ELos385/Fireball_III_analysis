@@ -12,12 +12,11 @@ from LAMP.utils.plotting import *
 
 class Andor(Diagnostic):
     """Andor Spectrometer.
-        TODO: Tracking sims
-        TODO: Two screens?
+        TODO: ...
     """
 
     __version = 0.1
-    __authors = ['Brendan Kettle', 'Maximilian Mudra']
+    __authors = ['Brendan Kettle', 'Eva Los', 'Maximilian Mudra']
     __requirements = 'cv2'
     data_type = 'csv'
 
@@ -40,9 +39,12 @@ class Andor(Diagnostic):
         Wraps base diagnostic class function, adding dispersion, divergence, charge.
         """
 
+
+
         # use diagnostic base function
         # loads calib id and run_img_calib for standard calibration routines
-        img, x, y = super().get_proc_shot(shot_dict, calib_id=calib_id, debug=debug)
+        # img, x, y = super().get_proc_shot(shot_dict, calib_id=calib_id, debug=debug)
+        img, x, y = super().get_proc_shot("tagged_data/andor/test.asc", calib_id=calib_id, debug=debug)
         if img is None:
             return None, None, None
 

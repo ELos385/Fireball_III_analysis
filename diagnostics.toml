@@ -16,11 +16,11 @@ data_ext = '.csv'
 calib_subfolder = './ESpecs/' # optional
 calib_file = 'HRM6_calibs.toml'#'HRM6_transform_LAMP_1749111754935000.pkl'
 
-[andor]
-type = 'ESpec_'
+[Andor]
+type = 'Andor'
 data_folder = '/tagged_data/andor/'
-data_stem = 'OD' # empty for some DAQs
-data_type = 'asc'
-data_ext = '.csv'
+data_stem = '' # Andor files have no data_stem
+data_type = 'csv'
+data_ext = '.asc'
 calib_subfolder = './andor/' # optional
 calib_file = 'andor_calibs.toml'

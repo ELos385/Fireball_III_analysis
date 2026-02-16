@@ -45,8 +45,11 @@ Thumbs.db
 # cp _local.toml local.toml
 local.toml
 
-
-
+# =========================
+# Local data and python environment
+# =========================
+FBIII/
+data/
 
 *.sys*
 .swanproject
