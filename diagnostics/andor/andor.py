@@ -35,7 +35,7 @@ class Andor(Diagnostic):
         super().__init__(exp_obj, config_filepath)
         return
 
-    def get_proc_shot(self, shot_dict, calib_id=None, apply_disp=True, apply_div=True, apply_charge=True, roi_mm=None, roi_MeV=None, roi_mrad=None, debug=False):
+    def get_proc_shot(self, shot_dict, calib_id=None, apply_disp=False, apply_div=False, apply_charge=False, roi_mm=None, roi_MeV=None, roi_mrad=None, debug=True):
         """Return a processed shot using saved or passed calibrations.
         Wraps base diagnostic class function, adding dispersion, divergence, charge.
         """
