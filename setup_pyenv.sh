@@ -11,7 +11,6 @@
 # Configuration - CHANGE THESE
 # -----------------------------
 ENV_NAME="FBIII"                 # Name of your custom environment
-CERN_USER="elos"                 # Your CERN username
 PYTHON_VERSION="3.12"            # Python version for environment
 MAMBA_ROOT_PREFIX="${HOME}/mamba"
 MICROMAMBA="${MAMBA_ROOT_PREFIX}/bin/micromamba"
@@ -101,7 +100,7 @@ EOL
 
 # Register kernel so Jupyter can see it
 micromamba run -n ${ENV_NAME} python -m ipykernel install \
-  --prefix /home/${CERN_USER}/.local \
+  --prefix /home/${USER}/.local \
   --name ${ENV_NAME} \
   --display-name "Python ${ENV_NAME}"
   
