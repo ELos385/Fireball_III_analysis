@@ -49,14 +49,13 @@ LAMP
 Only do this if you are using SWAN. 
 
 
-Open ```setup_pyenv.sh``` in ```Fireball_III_analysis```. Set ```ENV_NAME``` and ```CERN_USER``` to the name you want to use for your python environment and your CERN username respectively:
+Open ```setup_pyenv.sh``` in ```Fireball_III_analysis```. Set ```ENV_NAME``` to the name you want to use for your python environment:
 
 ```bash
 ENV_NAME=<env_name>
-CERN_USER=<cernusername>
 ```
 
-save the file.
+Save the file.
 
 Open a terminal and navigate to the ```Fireball_III_analysis``` directory (should be under SWAN_projects). In the terminal, run:
 
@@ -69,9 +68,21 @@ When running a jupyter notebook which requires LAMP, select the kernel ```"Pytho
 
 ### Installation on a local machine
 
-If you are running on a local machine (not SWAN), I recommend creating a new python environment and installing the python libraries listed under "dependencies".
-    
-You will also need to change the PATH in local.toml to point to the location your data is saved in locally.
+If you are running on a local machine (not SWAN), I recommend creating a new python environment and installing the python libraries listed under "dependencies". This can be done automatically using the Requirements.txt:
+
+```bash
+python -m venv FBIII
+source FBIII/bin/activate
+pip install -r Requirements.txt
+```
+
+You should then register the ipykernel:
+
+```bash
+python -m ipykernel install --user --name=FBIII --display-name "Python (FBIII)"
+```
+
+You will also need to change the PATH in local.toml to point to the location your data is saved in locally. The directory ```./data_root``` inside the repository can be used for this.
     
 
 ### Fireball_III analysis github structure
