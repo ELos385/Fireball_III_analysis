@@ -45,6 +45,12 @@ Thumbs.db
 # cp _local.toml local.toml
 local.toml
 
+# =========================
+# Local environment
+# =========================
+FBIII/
+data_root/*
+!data_root/.gitkeep
 
 
 
