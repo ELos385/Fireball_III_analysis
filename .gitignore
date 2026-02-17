@@ -46,10 +46,13 @@ Thumbs.db
 local.toml
 
 # =========================
-# Local data and python environment
+# Local environment
 # =========================
 FBIII/
-data/
+data_root/*
+!data_root/.gitkeep
+
+
 
 *.sys*
 .swanproject
