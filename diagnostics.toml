@@ -4,7 +4,7 @@ data_folder = '/chromox_cameras/HRM5/'
 data_stem = 'OD' # empty for some DAQs
 data_type = 'csv'
 data_ext = '.csv'
-calib_subfolder = './ESpecs/' # optional
+calib_subfolder = './ESpecs' # optional
 calib_file = 'HRM5_calibs.toml'#'HRM5_transform_LAMP_1749111754935000.pkl'
 
 [HRM6]
@@ -24,3 +24,12 @@ data_type = 'csv'
 data_ext = '.asc'
 calib_subfolder = './andor/' # optional
 calib_file = 'andor_calibs.toml'
+
+[Template]          # This is the self.config['name'] entry
+type = 'Template'   # This needs to be the exact spelling of the class name
+data_folder = '/test/'   # Relative to data_root
+data_stem = ''      # empty for some DAQs 
+data_type = 'csv'   # Implemented types: pickle, json, csv, numpy, toml, tif
+data_ext = '.csv'   # implemented extensions: .pickle, .json, .npy, .toml, .tif (fallback if data_type is unknown)
+calib_subfolder = '/' # optional
+calib_file = 'HRM6_calibs.toml'#'HRM6_transform_LAMP_1749111754935000.pkl'
