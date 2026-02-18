@@ -5,6 +5,7 @@ import re
 import time
 import numpy as np
 from LAMP.DAQ import DAQ
+from LAMP.utils.io import load_file
 
 class Fireball_DAQ(DAQ):
     """Interface layer for Fireball experimental series
@@ -12,6 +13,9 @@ class Fireball_DAQ(DAQ):
     __version = 0.1
     __name = 'Fireball_DAQ'
     __authors = ['Brendan Kettle', 'Eva Los', 'Maximilian Mudra']
+
+    # These file_types can be used so far
+    supported_file_types = ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif', 'asc']
 
     def __init__(self, exp_obj):
         """Initiate parent base Diagnostic class to get all shared attributes and funcs"""
@@ -51,6 +55,25 @@ class Fireball_DAQ(DAQ):
         except Exception as e:
             ValueError(f"Error: DIGICAM image generation from {path} failed. {e}")
 
+    def load_asc(self, filepath): # cold_dtypes=float
+        # Pandas might be better here? problems with mixed data types...
+        data = np.loadtxt(filepath, delimiter=',', dtype=float, max_rows=1, usecols=range(1025))
+        print(data)
+        if type(data[0]) == np.void: # if problems loading datatypes, try to return an array
+            data = np.array(list(map(list, data)))
+        return data
+
+    # Overwrite DAQ load_data to handle custom data types, e.g. csv images from DigiCam
+    def load_data(self, shot_filepath, file_type=None):
+        print(f"Loading data from {shot_filepath} with file_type {file_type} in {self.__name} DAQ.")
+        if file_type in ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif']:
+             data = load_file(Path(shot_filepath), file_type=file_type)
+        elif file_type == 'asc':
+            data = self.load_asc(Path(shot_filepath))
+        else:
+            raise ValueError(f"Error: file_type {file_type} not supported in {self.__name} DAQ.")
+
+        return data
 
     def get_shot_data(self, diag_name, shot_dict):
         """Provides shot_data depending on the data_type or data_ext of the diagnostic.
@@ -60,13 +83,15 @@ class Fireball_DAQ(DAQ):
 
         # MM: TODO: add sanity checks for the config parameters that we need to do this, and add error handling if they are not present. Also, add error handling for the loading functions.
         
-        
         diag_config = self.ex.diags[diag_name].config
-        file_type = diag_config['data_type']
+        data_type = diag_config['data_type']
         diag_data_path = os.path.join(Path(self.data_folder), Path(diag_config['data_folder'].lstrip("/\\")))
         
         shot_data = [] # for now, just return an array, but we could also return a dictionary with the data and the coordinates for images, for example. Or just return the raw data and let the diagnostic handle it?
         shot_filepaths = [] # intermediate array of all relevant (absolute) filepaths
+
+        if not (data_type in self.supported_file_types):
+            raise ValueError(f"Error: data_type '{data_type}' not supported in {self.__name} DAQ.")
 
         # Double check if shot_dict is dictionary; could just be filepath
         if isinstance(shot_dict, dict):
@@ -119,12 +144,9 @@ class Fireball_DAQ(DAQ):
 
         for shot_filepath in shot_filepaths:
             if os.path.exists(shot_filepath):
-                
-                shot_data.append(self.load_data(shot_filepath, file_type=file_type))
-
-
-
-
+                print(data_type)
+                print(shot_filepath)
+                shot_data.append(self.load_data(shot_filepath, data_type))
             else:
                 print(f"Error: Could not find file {shot_filepath} for {diag_name}")
                 shot_data.append(None)
