@@ -1,11 +1,8 @@
-import os, sys
+import os
 from pathlib import Path
-import csv
-import re
-import time
+from re import A
 import numpy as np
 from LAMP.DAQ import DAQ
-from LAMP.utils.io import load_file
 
 class Fireball_DAQ(DAQ):
     """Interface layer for Fireball experimental series
@@ -55,21 +52,40 @@ class Fireball_DAQ(DAQ):
         except Exception as e:
             ValueError(f"Error: DIGICAM image generation from {path} failed. {e}")
 
-    def load_asc(self, filepath): # cold_dtypes=float
-        # Pandas might be better here? problems with mixed data types...
-        data = np.loadtxt(filepath, delimiter=',', dtype=float, max_rows=1, usecols=range(1025))
+    def load_asc(self, filepath):
+        """Loads data from .asc files, which are used for spectroscopy in the Fireball
+        series. These files are essentially .csv files, but without header row and
+        meta data stored at the end.
+
+        Parameters
+        ----------
+            filepath : str
+                The path to the .asc file where the spectroscopy data is stored.
+
+        Returns
+        -------
+            data : np.ndarray
+                The spectroscopy data as a numpy array after being loaded from the .asc file.
+        """
+
+        if not Path(filepath).suffix == '.asc':
+            raise ValueError(f"Error: load_asc() function only supports .asc files, "
+                            f"but {filepath} has extension {Path(filepath).suffix}")
+        data = np.loadtxt(filepath, delimiter=',', dtype=float, max_rows=1024, usecols=range(1025))
         print(data)
         if type(data[0]) == np.void: # if problems loading datatypes, try to return an array
             data = np.array(list(map(list, data)))
         return data
 
-    # Overwrite DAQ load_data to handle custom data types, e.g. csv images from DigiCam
+    # Overwrite DAQ load_data to handle custom data types, e.g. asc files from spectroscopy
     def load_data(self, shot_filepath, file_type=None):
         print(f"Loading data from {shot_filepath} with file_type {file_type} in {self.__name} DAQ.")
         if file_type in ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif']:
-             data = load_file(Path(shot_filepath), file_type=file_type)
+             data = super().load_data(shot_filepath, file_type=file_type)
         elif file_type == 'asc':
             data = self.load_asc(Path(shot_filepath))
+        # elif file_type == 'image':
+            # data = super().load_imdata(shot_filepath)
         else:
             raise ValueError(f"Error: file_type {file_type} not supported in {self.__name} DAQ.")
 
@@ -79,69 +95,109 @@ class Fireball_DAQ(DAQ):
         """Provides shot_data depending on the data_type or data_ext of the diagnostic.
         For images, uses load_csv_image() to load the data, and for other data types, 
         uses load_data().
+
+        Parameters
+        ----------
+            diag_name : str
+                The name of the diagnostic for which we want to get the shot data. This is
+                used to look up the appropriate data_type and data_ext in the diagnostic's
+                config.
+            shot_dict : dict or str
+                A dictionary containing information about the shots, which can be used to
+                construct the appropriate file paths. Alternatively, this can be a string
+                containing a raw file path to the data.
+        
+        Returns
+        -------
+            shot_data : list
+                A list of shot data for each shot in the shot_dict.
         """
 
-        # MM: TODO: add sanity checks for the config parameters that we need to do this, and add error handling if they are not present. Also, add error handling for the loading functions.
+        # MM: TODO: add sanity checks for the config parameters that we need for this
+        # function to work, e.g. data_type, data_ext, data_folder, etc. Also check that
+        # the shot_dict has the appropriate keys for this, and add error handling if they
+        # are not present. Also, add error handling for the loading functions.
         
         diag_config = self.ex.diags[diag_name].config
-        data_type = diag_config['data_type']
-        diag_data_path = os.path.join(Path(self.data_folder), Path(diag_config['data_folder'].lstrip("/\\")))
         
-        shot_data = [] # for now, just return an array, but we could also return a dictionary with the data and the coordinates for images, for example. Or just return the raw data and let the diagnostic handle it?
-        shot_filepaths = [] # intermediate array of all relevant (absolute) filepaths
-
+        data_type = diag_config['data_type']
         if not (data_type in self.supported_file_types):
-            raise ValueError(f"Error: data_type '{data_type}' not supported in {self.__name} DAQ.")
+            raise ValueError(f"Error: data_type '{data_type}' not supported in {self.__name} "
+                             f"DAQ.")
+        
+        diag_data_path = os.path.join(Path(self.data_folder),
+                                      Path(diag_config['data_folder'].lstrip("/\\")))
+        
+        # for now, just return an array, but we could also return a dictionary with the
+        # data and the coordinates for images, for example. Or just return the raw data
+        # and let the diagnostic handle it?
+        shot_data = []
 
-        # Double check if shot_dict is dictionary; could just be filepath
+        # Intermediate array of all relevant (absolute) filepaths
+        shot_filepaths = []
+
+        # Check if shot_dict is dictionary
         if isinstance(shot_dict, dict):
-            # Possible shot_dict keys: filename, timestamp, timeframe, shotnumber, burst            
-            required = ['filename', 'timestamp', 'timeframe', 'shotnumber', 'burst']
+            # Possible shot_dict keys: filename, timestamp, timeframe            
+            required = ['filename', 'timestamp', 'timeframe']
             if not any(key in shot_dict for key in required):
                 raise ValueError(f"Error: shot_dict {shot_dict} is not a valid input for "
                                  f"get_shot_data() in {self.__name} DAQ. Please provide "
-                                 f"either a dictionary with keys 'filenames' or 'timestamp', "
-                                 f"or a raw filepath string.")
-
-            print(f"Getting shot data for {diag_name} with shot_dict: {shot_dict}")
+                                 f"either a dictionary with keys 'filenames', 'timestamp',"
+                                 f"'timeframe' or a raw filepath string.")
 
             if 'filename' in shot_dict:
                 in_files = shot_dict['filename']
                 for file in in_files:
-                    shot_filepaths.append(os.path.join(diag_data_path, Path(file.lstrip("/\\"))))
+                    shot_filepaths.append(os.path.join(diag_data_path,
+                                                       Path(file.lstrip("/\\"))))
             
             elif 'timestamp' in shot_dict:
-                # Attempt to find file with timestamp in name
-                self.todo('timestamp')
+                in_timestamps = shot_dict['timestamp']
+
+                for timestamp in in_timestamps:
+                    shot_filepaths.append(self.timestamp_to_filename(timestamp))
+
             
             elif 'timeframe' in shot_dict:
                 # Attempt to find files with timestamps in name that fall within
                 # provided timeframe
                 self.todo('timeframe')
-            
-            elif 'shotnumber' in shot_dict:
-                # Attempt to find file with shotnumber in name, or metadata that
-                # matches provided shotnumber (lookup shotnumber in metadata, find
-                # timestamp, find file with timestamp in name)
-                self.todo('shotnumber_to_timestamp')
-                self.todo('shotnumber')
-            
-            elif 'burst' in shot_dict:
-                # Attempt to find files with burst number in name, or metadata that
-                # matches provided burst number (lookup burst number in metadata,
-                # find timestamp, find file with timestamp in name)
-                self.todo('burst')
                 
         # A single (relative) filepath can be provided as a string
         elif isinstance(shot_dict, str):
-            shot_filepaths = [os.path.join(diag_data_path, Path(shot_dict))]
+            base = Path(diag_data_path).resolve()
+            path = (base / shot_dict).resolve()
+
+            if base not in path.parents and path != base:
+                raise ValueError("Path escapes base directory")
+
+            shot_filepaths = [path]
         
         else:
             raise ValueError(f"Error: shot_dict {shot_dict} is not a valid input for "
                              f"get_shot_data() in {self.__name} DAQ. Please provide either "
                              f"a dictionary with keys 'filenames', 'timestamp', 'timeframe', "
-                             f"'shotnumber', or 'burst', or a raw filepath string.")
+                             f"or a raw filepath string.")
 
+        # Convert to Path objects for easier handling
+        shot_filepaths = [Path(f) for f in shot_filepaths]        
+
+        # Filter files according to prefix and extension
+        if 'data_stem' in diag_config:
+            stem = diag_config['data_stem']
+            shot_filepaths = [
+                f for f in shot_filepaths
+                if f.name.startswith(stem)
+            ]
+        if 'data_ext' in diag_config:
+            ext = diag_config['data_ext']
+            shot_filepaths = [
+                f for f in shot_filepaths
+                if f.suffix == ext
+            ]
+
+        # Iterate through the filepaths and load the data
         for shot_filepath in shot_filepaths:
             if os.path.exists(shot_filepath):
                 print(data_type)
@@ -149,7 +205,6 @@ class Fireball_DAQ(DAQ):
                 shot_data.append(self.load_data(shot_filepath, data_type))
             else:
                 print(f"Error: Could not find file {shot_filepath} for {diag_name}")
-                shot_data.append(None)
 
         if len(shot_data) == 0:
             print(f"Warning: No shot data loaded for diagnostic {diag_name} with "
