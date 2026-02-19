@@ -9,6 +9,3 @@ ROOT_FOLDER = str(Path.cwd().parent.parent) #Path.cwd().parent.parent#Path(__fil
 sys.path.append(ROOT_FOLDER)
 # import diagnostics.ESpec_
 ex = Experiment(ROOT_FOLDER)
-
-
-

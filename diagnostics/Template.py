@@ -1,6 +1,5 @@
 
 import os
-#from configparser import ConfigParser, ExtendedInterpolation
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -19,8 +18,6 @@ class Template(Diagnostic):
     """Base class for Diagnostics. 
     Currently this mostly handles loading/saving calibrations.
     """
-
-    # Diagnostics attributes
 
     def __init__(self, exp_obj, config_filepath):
         """Initiate parent base Diagnostic class to get all shared attributes and funcs"""
