@@ -19,38 +19,38 @@ class Fireball_DAQ(DAQ):
         super().__init__(exp_obj)
         return
     
-    def load_csv_image(self, path:str)->tuple[np.ndarray, list, list]:
-        """Loads image object from .csv given by DigiCam. Due to the way that the DigiCams store image data,
-        the first column and first row have to be removed, as these contain coordinate information about the
-        pixels.
+    # def load_csv_image(self, path:str)->tuple[np.ndarray, list, list]:
+    #     """Loads image object from .csv given by DigiCam. Due to the way that the DigiCams store image data,
+    #     the first column and first row have to be removed, as these contain coordinate information about the
+    #     pixels.
 
-        Parameters
-        ----------
-            path : str
-                The path to the raw .csv file where the DigiCam image is stored.
+    #     Parameters
+    #     ----------
+    #         path : str
+    #             The path to the raw .csv file where the DigiCam image is stored.
 
-        Returns
-        -------
-            img : np.ndarray
-                The image as a numpy array after being loaded from the .csv, and after having its first column and
-                first row trimmed.
-            x_pixels : np.ndarray
-                The trimmed top row of the image data, which encodes the x coordinates in mm.
-            y_pixels : np.ndarray
-                The trimmed first column of the image data, which encodes the y coordinates in mm.
-        """
+    #     Returns
+    #     -------
+    #         img : np.ndarray
+    #             The image as a numpy array after being loaded from the .csv, and after having its first column and
+    #             first row trimmed.
+    #         x_pixels : np.ndarray
+    #             The trimmed top row of the image data, which encodes the x coordinates in mm.
+    #         y_pixels : np.ndarray
+    #             The trimmed first column of the image data, which encodes the y coordinates in mm.
+    #     """
 
-        #Remove top row and first column, as this is coordinate data
-        try:
-            img = np.genfromtxt(path, delimiter=',')
-            x_coords = img[0, 1:]
-            y_coords = img[1:, 0]
-            img = img[1:, 1:]
+    #     #Remove top row and first column, as this is coordinate data
+    #     try:
+    #         img = np.genfromtxt(path, delimiter=',')
+    #         x_coords = img[0, 1:]
+    #         y_coords = img[1:, 0]
+    #         img = img[1:, 1:]
 
-            return {"IMG":img, "X":x_coords, "Y":y_coords}
+    #         return {"IMG":img, "X":x_coords, "Y":y_coords}
 
-        except Exception as e:
-            ValueError(f"Error: DIGICAM image generation from {path} failed. {e}")
+    #     except Exception as e:
+    #         ValueError(f"Error: DIGICAM image generation from {path} failed. {e}")
 
     def load_asc(self, filepath):
         """Loads data from .asc files, which are used for spectroscopy in the Fireball
@@ -113,10 +113,11 @@ class Fireball_DAQ(DAQ):
                 A list of shot data for each shot in the shot_dict.
         """
 
-        # MM: TODO: add sanity checks for the config parameters that we need for this
-        # function to work, e.g. data_type, data_ext, data_folder, etc. Also check that
-        # the shot_dict has the appropriate keys for this, and add error handling if they
-        # are not present. Also, add error handling for the loading functions.
+        # MM: TODO: We should really return a dictionary with a list of identifiers for
+        # the data and the data itself, e.g. {"data":shot_data, "filenames":shot_filepaths}
+        # or something like that, so that we can keep track of which data corresponds to
+        # which file, and also so that we can return any relevant metadata that we might want
+        # to use in the diagnostics later on.
         
         diag_config = self.ex.diags[diag_name].config
         
@@ -156,8 +157,9 @@ class Fireball_DAQ(DAQ):
                 in_timestamps = shot_dict['timestamp']
 
                 for timestamp in in_timestamps:
-                    shot_filepaths.append(self.timestamp_to_filename(timestamp))
-
+                    shot_filepaths.extend(self.timestamp_to_filename(timestamp,diag_data_path))
+                # Remove duplicates, if there are multiple timestamps that correspond to the same file
+                shot_filepaths = list(set(shot_filepaths))
             
             elif 'timeframe' in shot_dict:
                 # Attempt to find files with timestamps in name that fall within
@@ -213,90 +215,101 @@ class Fireball_DAQ(DAQ):
         return shot_data
 
 
-    def get_files(self, timestamp_slice)->dict[str, str]:
-        """Returns a list of file names in the provided directory, so long as the files contain the appropriate extension.
+    # def get_files(self, timestamp_slice)->dict[str, str]:
+    #     """Returns a list of file names in the provided directory, so long as the files contain the appropriate extension.
         
-        Returns
-        -------
-            files_dict_sorted : dict[str, str]
-                Dictionary of files and timestamps, sorted in reverse-chronological order by timestamp. The KEY is the timestamp,
-                the VALUE is the filename.
-        """
+    #     Returns
+    #     -------
+    #         files_dict_sorted : dict[str, str]
+    #             Dictionary of files and timestamps, sorted in reverse-chronological order by timestamp. The KEY is the timestamp,
+    #             the VALUE is the filename.
+    #     """
 
-        diag_config = self.ex.diags[diag_name].config['setup']
+    #     diag_config = self.ex.diags[diag_name].config['setup']
         
-        required = ['data_stem','data_ext','data_type']
-        for param in required:
-            if param not in diag_config:
-                print(f"get_shot_data() error: {self.__name} DAQ requires a config['setup'] parameter '{param}' for {diag_name}")
-                return None
+    #     required = ['data_stem','data_ext','data_type']
+    #     for param in required:
+    #         if param not in diag_config:
+    #             print(f"get_shot_data() error: {self.__name} DAQ requires a config['setup'] parameter '{param}' for {diag_name}")
+    #             return None
            
         
-        # Select the appropriate file extension
-        extension = diag_config['data_ext']#self.input["EXTENSION_DICT"][self.input["DEVICE_NAME"]]
+    #     # Select the appropriate file extension
+    #     extension = diag_config['data_ext']#self.input["EXTENSION_DICT"][self.input["DEVICE_NAME"]]
 
-        # Accumulate list of files with the correct extension in the directory provided.
-        #timestamp_slice = self.input["TIMESTAMP_SLICE"][self.input["DEVICE_NAME"]] # slice we need to take from the string to get the timestamp
+    #     # Accumulate list of files with the correct extension in the directory provided.
+    #     #timestamp_slice = self.input["TIMESTAMP_SLICE"][self.input["DEVICE_NAME"]] # slice we need to take from the string to get the timestamp
         
-        # Create dictionary of files and their timestamps. If we have no pre-determined means of doing this, fall back on using os.stat().st_mtime. The dictionaries are of form {Timestamp:Slice}
-        if timestamp_slice is not None:
-            files_dict = {f[timestamp_slice[0]:timestamp_slice[1]]:f for f in os.listdir(diag_config['paths']['data_folder']) if f.endswith(extension)\
-                    and not os.path.isdir(os.path.join(diag_config['paths']['data_folder'], f))}
-        else:
-            logger.info(f"Warning: no timestamp slice provided for {self.ex.diags[diag_name]}")
-            files_dict = {str(int(os.stat(os.path.join(diag_config['paths']['data_folder'], f)).st_mtime)):f for f in os.listdir(diag_config['paths']['data_folder']) if f.endswith(extension)\
-                    and not os.path.isdir(os.path.join(diag_config['paths']['data_folder'], f))}
+    #     # Create dictionary of files and their timestamps. If we have no pre-determined means of doing this, fall back on using os.stat().st_mtime. The dictionaries are of form {Timestamp:Slice}
+    #     if timestamp_slice is not None:
+    #         files_dict = {f[timestamp_slice[0]:timestamp_slice[1]]:f for f in os.listdir(diag_config['paths']['data_folder']) if f.endswith(extension)\
+    #                 and not os.path.isdir(os.path.join(diag_config['paths']['data_folder'], f))}
+    #     else:
+    #         logger.info(f"Warning: no timestamp slice provided for {self.ex.diags[diag_name]}")
+    #         files_dict = {str(int(os.stat(os.path.join(diag_config['paths']['data_folder'], f)).st_mtime)):f for f in os.listdir(diag_config['paths']['data_folder']) if f.endswith(extension)\
+    #                 and not os.path.isdir(os.path.join(diag_config['paths']['data_folder'], f))}
         
 
-        # Sort the files in reverse order to their timestamps (i.e. most recent files are earlier in the list)
-        files_dict_sorted = dict(sorted(files_dict.items(), key=lambda item : item[0], reverse=True))
-        # make sure that we are not asking for a larger number of shots than actually exist ...
+    #     # Sort the files in reverse order to their timestamps (i.e. most recent files are earlier in the list)
+    #     files_dict_sorted = dict(sorted(files_dict.items(), key=lambda item : item[0], reverse=True))
+    #     # make sure that we are not asking for a larger number of shots than actually exist ...
             
-        if len(self.input["EXP_SHOT_NOS"]) > len(files_dict_sorted.values()):
-            no_of_req_shots = len(self.input["EXP_SHOT_NOS"])
-            no_of_files = len(files_dict_sorted)
-            raise ValueError(f"Error: requested {no_of_req_shots} shots, but only {no_of_files} were found.")
+    #     if len(self.input["EXP_SHOT_NOS"]) > len(files_dict_sorted.values()):
+    #         no_of_req_shots = len(self.input["EXP_SHOT_NOS"])
+    #         no_of_files = len(files_dict_sorted)
+    #         raise ValueError(f"Error: requested {no_of_req_shots} shots, but only {no_of_files} were found.")
             
 
-        return files_dict_sorted
+    #     return files_dict_sorted
         
         
-    def get_supplementary_files(self, files_dict_in):
-         #        "SUPPLEMENTARY_FOLDER_NAMES":SUPPLEMENTARY_FOLDER_NAMES,
+    # def get_supplementary_files(self, files_dict_in):
+    #      #        "SUPPLEMENTARY_FOLDER_NAMES":SUPPLEMENTARY_FOLDER_NAMES,
             
-            # Select the appropriate file extension
-        extension = self.input["EXTENSION_DICT"][self.input["DEVICE_NAME"]]
+    #         # Select the appropriate file extension
+    #     extension = self.input["EXTENSION_DICT"][self.input["DEVICE_NAME"]]
 
-        # Accumulate list of files with the correct extension in the directory provided.
-        timestamp_slice = self.input["TIMESTAMP_SLICE"][self.input["DEVICE_NAME"]] # slice we need to take from the string to get the timestamp
+    #     # Accumulate list of files with the correct extension in the directory provided.
+    #     timestamp_slice = self.input["TIMESTAMP_SLICE"][self.input["DEVICE_NAME"]] # slice we need to take from the string to get the timestamp
         
-        # Create dictionary of files and their timestamps. If we have no pre-determined means of doing this, fall back on using os.stat().st_mtime. The dictionaries are of form {Timestamp:Slice}
-        for folder in self.input["SUPPLEMENTARY_FOLDER_NAMES"][self.input["DEVICE_NAME"]]:
-            path=os.path.join(self.input["PARENT_DIR"], folder)
-            for f in os.listdir(path):
+    #     # Create dictionary of files and their timestamps. If we have no pre-determined means of doing this, fall back on using os.stat().st_mtime. The dictionaries are of form {Timestamp:Slice}
+    #     for folder in self.input["SUPPLEMENTARY_FOLDER_NAMES"][self.input["DEVICE_NAME"]]:
+    #         path=os.path.join(self.input["PARENT_DIR"], folder)
+    #         for f in os.listdir(path):
                 
-                if f.endswith(extension) and not os.path.isdir(os.path.join(path, f)):
-                    if timestamp_slice is not None:
-                        files_dict_in[f[timestamp_slice[0]:timestamp_slice[1]]]=os.path.join(path, f)
-                    else:
-                        logger.info(f"Warning: no timestamp slice provided for {self.input['DEVICE_NAME']}")
-                        files_dict_in[str(int(os.stat(os.path.join(path, f)).st_mtime))]=os.path.join(path, f)
+    #             if f.endswith(extension) and not os.path.isdir(os.path.join(path, f)):
+    #                 if timestamp_slice is not None:
+    #                     files_dict_in[f[timestamp_slice[0]:timestamp_slice[1]]]=os.path.join(path, f)
+    #                 else:
+    #                     logger.info(f"Warning: no timestamp slice provided for {self.input['DEVICE_NAME']}")
+    #                     files_dict_in[str(int(os.stat(os.path.join(path, f)).st_mtime))]=os.path.join(path, f)
                 
-        files_dict_sorted = dict(sorted(files_dict_in.items(), key=lambda item : item[0], reverse=True))
+    #     files_dict_sorted = dict(sorted(files_dict_in.items(), key=lambda item : item[0], reverse=True))
         
-        return files_dict_sorted
+    #     return files_dict_sorted
     
 
-    def build_time_point(self, shot_dict):
-        """Universal function to return a point in time for DAQ, for comparison, say in calibrations
-        """
-        if isinstance(shot_dict['shot'], list):
-            return int(str(np.max(shot_dict['shot']))[0:10])
-        else:
-            return int(str(shot_dict['shot'])[0:10])# time_point
+    # def build_time_point(self, shot_dict):
+    #     """Universal function to return a point in time for DAQ, for comparison, say in calibrations
+    #     """
+    #     if isinstance(shot_dict['shot'], list):
+    #         return int(str(np.max(shot_dict['shot']))[0:10])
+    #     else:
+    #         return int(str(shot_dict['shot'])[0:10])# time_point
 
-    def timestamp_to_filename(self, timestamp):
-        raise NotImplementedError("timestamp_to_filename() not implemented yet")
+    def timestamp_to_filename(self, timestamp, data_path):
+        """Function to convert a timestamp to a list of corresponding filenames in the
+        diagnostic's data_dir
+        """
+        file_paths = []
+        
+        for file in os.listdir(data_path):
+            if timestamp in file:
+                file_paths.append(os.path.join(data_path, file))
+        if len(file_paths) == 0:
+            print(f"Warning: No files found with timestamp {timestamp} in {data_path}")
+
+        return file_paths
     
     def timeframe_to_filenames(self, timeframe):
         raise NotImplementedError("timeframe_to_filenames() not implemented yet")
