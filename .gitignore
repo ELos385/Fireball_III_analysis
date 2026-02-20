@@ -51,6 +51,8 @@ local.toml
 FBIII/
 data_root/*
 !data_root/.gitkeep
+calibs/andor/*
+!calibs/andor/andor.toml
 
 
 

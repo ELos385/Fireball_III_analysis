@@ -73,7 +73,8 @@ If you are running on a local machine (not SWAN), I recommend creating a new pyt
 ```bash
 python -m venv FBIII
 source FBIII/bin/activate
-pip install -r Requirements.txt
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r Requirements.txt
 ```
 
 You should then register the ipykernel:
