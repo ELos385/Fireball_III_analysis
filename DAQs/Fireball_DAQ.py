@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
-from re import A
+import re
+# from re import A
+# from turtle import st
 import numpy as np
 from LAMP.DAQ import DAQ
 
@@ -149,22 +151,58 @@ class Fireball_DAQ(DAQ):
 
             if 'filename' in shot_dict:
                 in_files = shot_dict['filename']
+                if isinstance(in_files, str):
+                    in_files = [in_files]
+
                 for file in in_files:
                     shot_filepaths.append(os.path.join(diag_data_path,
                                                        Path(file.lstrip("/\\"))))
             
             elif 'timestamp' in shot_dict:
                 in_timestamps = shot_dict['timestamp']
+                if isinstance(in_timestamps, str):
+                    in_timestamps = [in_timestamps]
 
                 for timestamp in in_timestamps:
+                    if not isinstance(timestamp, str):
+                        raise TypeError("Timestamps must be strings")
+
                     shot_filepaths.extend(self.timestamp_to_filename(timestamp,diag_data_path))
+
                 # Remove duplicates, if there are multiple timestamps that correspond to the same file
                 shot_filepaths = list(set(shot_filepaths))
             
             elif 'timeframe' in shot_dict:
                 # Attempt to find files with timestamps in name that fall within
                 # provided timeframe
-                self.todo('timeframe')
+
+                if not isinstance(shot_dict['timeframe'], (list, tuple)) or len(shot_dict['timeframe']) != 2:
+                    raise ValueError("'timeframe' must be a list/tuple of length 2")
+
+                start_time, end_time = shot_dict['timeframe']
+                if not isinstance(start_time, str) or not isinstance(end_time, str):
+                    raise TypeError("Timeframe values must be strings")
+
+                # Normalize timestamps to ensure they are in the same format
+                start_time = self.normalize_timestamp(start_time,'DOWN')
+                end_time = self.normalize_timestamp(end_time,'UP')
+
+                pattern = r"^\d{14}$"  # YYYYMMDDHHMMSS (14 digits)
+
+                if not re.fullmatch(pattern, start_time):
+                    raise ValueError(f"Invalid start_time format: {start_time}")
+
+                if not re.fullmatch(pattern, end_time):
+                    raise ValueError(f"Invalid end_time format: {end_time}")
+
+                if start_time > end_time:
+                    raise ValueError("start_time must be <= end_time")
+
+                print(f"Looking for files with timestamps between {start_time} and {end_time} in {diag_data_path}")
+
+                shot_filepaths = self.timeframe_to_filenames((start_time, end_time), diag_data_path)
+
+
                 
         # A single (relative) filepath can be provided as a string
         elif isinstance(shot_dict, str):
@@ -288,7 +326,6 @@ class Fireball_DAQ(DAQ):
         
     #     return files_dict_sorted
     
-
     # def build_time_point(self, shot_dict):
     #     """Universal function to return a point in time for DAQ, for comparison, say in calibrations
     #     """
@@ -311,12 +348,52 @@ class Fireball_DAQ(DAQ):
 
         return file_paths
     
-    def timeframe_to_filenames(self, timeframe):
-        raise NotImplementedError("timeframe_to_filenames() not implemented yet")
-    
-    def burst_to_filename(self, burst):
-        raise NotImplementedError("burst_to_filename() not implemented yet")
-    
+
+    def timeframe_to_filenames(self, timeframe, data_path):
+        """
+        Convert timeframe (start_time, end_time) to list of filepaths
+        whose filenames contain YYYYMMDDHHMMSS timestamps.
+        """
+
+        start_time, end_time = timeframe
+        data_path = Path(data_path)
+
+        timestamp_pattern = re.compile(r"\d{14}")
+
+        file_paths = []
+
+        for file in data_path.iterdir():
+            if not file.is_file():
+                continue
+
+            match = timestamp_pattern.search(file.name)
+            if not match:
+                continue
+
+            file_timestamp = match.group(0)
+
+            if start_time <= file_timestamp <= end_time:
+                file_paths.append(file)
+
+        file_paths.sort()
+
+        if not file_paths:
+            print(
+                f"Warning: No files found with timestamps between "
+                f"{start_time} and {end_time} in {data_path}"
+            )
+
+        return file_paths
+
+
     def todo(self, item):
         print(f"TODO: {item} functionality not implemented yet in {self.__name} DAQ.")
     
+
+    def normalize_timestamp(self, timestamp, direction):
+        if len(timestamp) == 8:
+            if direction == 'UP':
+                return timestamp + "235959"   # end of day
+            elif direction == 'DOWN':
+                return timestamp + "000000"   # start of day
+        return timestamp
