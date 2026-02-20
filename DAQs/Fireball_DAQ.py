@@ -104,7 +104,6 @@ class Fireball_DAQ(DAQ):
         # data and the coordinates for images, for example. Or just return the raw data
         # and let the diagnostic handle it?
         shot_data = []
-        key = None
 
         # Intermediate array of all relevant (absolute) filepaths
         shot_filepaths = []
@@ -120,9 +119,7 @@ class Fireball_DAQ(DAQ):
                                  f"'timeframe' or a raw filepath string.")
 
             if 'filename' in shot_dict:
-                key = 'filename'
                 in_files = shot_dict['filename']
-                labels = in_files
                 if isinstance(in_files, str):
                     in_files = [in_files]
 
@@ -131,9 +128,7 @@ class Fireball_DAQ(DAQ):
                                                        Path(file.lstrip("/\\"))))
             
             elif 'timestamp' in shot_dict:
-                key = 'timestamp'
                 in_timestamps = shot_dict['timestamp']
-                labels = in_timestamps
                 if isinstance(in_timestamps, str):
                     in_timestamps = [in_timestamps]
 
@@ -147,7 +142,6 @@ class Fireball_DAQ(DAQ):
                 shot_filepaths = list(set(shot_filepaths))
             
             elif 'timeframe' in shot_dict:
-                key = 'timestamp'
                 # Attempt to find files with timestamps in name that fall within
                 # provided timeframe
 
@@ -181,13 +175,11 @@ class Fireball_DAQ(DAQ):
                 
         # A single (relative) filepath can be provided as a string
         elif isinstance(shot_dict, str):
-            key = 'filename'
             base = Path(diag_data_path).resolve()
             path = (base / shot_dict).resolve()
 
             if base not in path.parents and path != base:
                 raise ValueError("Path escapes base directory")
-            labels = [Path(shot_dict).name]
             shot_filepaths = [path]
         
         else:
@@ -213,12 +205,14 @@ class Fireball_DAQ(DAQ):
                 if f.suffix == ext
             ]
 
+        used_files = [] # to keep track of which files we actually used, in case some were missing or didn't match the criteria
         # Iterate through the filepaths and load the data
         for shot_filepath in shot_filepaths:
             if os.path.exists(shot_filepath):
                 print(data_type)
                 print(shot_filepath)
                 shot_data.append(self.load_data(shot_filepath, data_type))
+                used_files.append(shot_filepath)
             else:
                 print(f"Error: Could not find file {shot_filepath} for {diag_name}")
 
@@ -227,8 +221,10 @@ class Fireball_DAQ(DAQ):
                   f"shot_dict {shot_dict}! Does the file exist?")
             return None
         
-        return {'key': key, 'labels': labels, 'data': shot_data}
-        # {'key': 'filename', 'labels': ['file1.ext', 'file2.ext'], 'data': [data1, data2]}
+        return {
+            'filename': [p.name for p in used_files],
+            'data': shot_data,
+        }
 
 
     def timestamp_to_filename(self, timestamp, data_path):
