@@ -116,6 +116,7 @@ class Fireball_DAQ(DAQ):
         # data and the coordinates for images, for example. Or just return the raw data
         # and let the diagnostic handle it?
         shot_data = []
+        key = None
 
         # Intermediate array of all relevant (absolute) filepaths
         shot_filepaths = []
@@ -131,7 +132,9 @@ class Fireball_DAQ(DAQ):
                                  f"'timeframe' or a raw filepath string.")
 
             if 'filename' in shot_dict:
+                key = 'filename'
                 in_files = shot_dict['filename']
+                labels = in_files
                 if isinstance(in_files, str):
                     in_files = [in_files]
 
@@ -140,7 +143,9 @@ class Fireball_DAQ(DAQ):
                                                        Path(file.lstrip("/\\"))))
             
             elif 'timestamp' in shot_dict:
+                key = 'timestamp'
                 in_timestamps = shot_dict['timestamp']
+                labels = in_timestamps
                 if isinstance(in_timestamps, str):
                     in_timestamps = [in_timestamps]
 
@@ -154,6 +159,7 @@ class Fireball_DAQ(DAQ):
                 shot_filepaths = list(set(shot_filepaths))
             
             elif 'timeframe' in shot_dict:
+                key = 'timestamp'
                 # Attempt to find files with timestamps in name that fall within
                 # provided timeframe
 
@@ -186,6 +192,7 @@ class Fireball_DAQ(DAQ):
 
         # A single (relative) filepath can be provided as a string
         elif isinstance(shot_dict, str):
+            key = 'filename'
             base = Path(diag_data_path).resolve()
             path = (base / shot_dict).resolve()
 
