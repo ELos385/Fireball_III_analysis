@@ -16,6 +16,15 @@ data_ext = '.csv'
 calib_subfolder = './ESpecs/' # optional
 calib_file = 'HRM6_calibs.toml'#'HRM6_transform_LAMP_1749111754935000.pkl'
 
+[Template]                          # This is the self.config['name'] entry
+type = 'Template'                   # This needs to be the exact spelling of the class name
+data_folder = '/test/'              # Relative to data_root
+data_stem = ''                      # empty for some DAQs 
+data_type = 'asc'                   # Implemented types: pickle, json, csv, numpy, toml, tif, asc
+data_ext = '.asc'                   # implemented extensions: .pickle, .json, .npy, .toml, .tif, .asc (fallback if data_type is unknown)
+calib_subfolder = '/'               # optional
+calib_file = 'HRM6_calibs.toml'
+
 [SCOPE1]
 type = 'BDot'
 data_folder = '/scope_pool05720010/'
