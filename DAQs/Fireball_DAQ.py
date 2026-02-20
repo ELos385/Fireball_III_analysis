@@ -3,6 +3,13 @@ from pathlib import Path
 import re
 import numpy as np
 from LAMP.DAQ import DAQ
+import logging
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s: %(message)s"
+)
 
 class Fireball_DAQ(DAQ):
     """Interface layer for Fireball experimental series
@@ -18,6 +25,11 @@ class Fireball_DAQ(DAQ):
     def __init__(self, exp_obj):
         """Initiate parent base Diagnostic class to get all shared attributes and funcs"""
         super().__init__(exp_obj)
+        if 'DAQ' in self.ex.config.keys():
+            logging.info(f"DAQ is set to {self.ex.config['DAQ']} in ex.config")
+            logging.level = self.ex.config['DAQ']['logging']['level']
+        else:
+            logging.warning("DAQ is not in ex.config")
         return
 
 
