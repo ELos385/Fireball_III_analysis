@@ -89,13 +89,37 @@ class Fireball_DAQ_Bdot(DAQ):
 
             Returns
             -------
-                data : np.ndarray
-                    The spectroscopy data as a numpy array after being loaded from the .asc file.
+            dict
+                {
+                    "time": np.ndarray,
+                    "channels": np.ndarray,
+                    "channel_names": list of str,
+                    "N": int,      # number of samples
+                    "dt": float    # time step
+                }
         """
         # Read all lines
         with open(filepath, 'r') as f:
             lines = f.readlines()
-    
+
+        # Extract N and dt from header
+        N = None
+        dt = None
+        
+        for line in lines:
+            # Strip whitespace and split by comma
+            parts = line.strip().split(',')
+            if parts[0].lower() == "sample interval":
+                dt = float(parts[1])
+            if parts[0].lower() == "record length":
+                N = int(parts[1])
+            # Stop early if we have both
+            if N is not None and dt is not None:
+                break
+
+        if N is None or dt is None:
+            raise ValueError("Could not find Sample Interval or Record Length in header.")
+        
         # Find header line (contains 'Time')
         header_index = None
         for i, line in enumerate(lines):
@@ -119,11 +143,18 @@ class Fireball_DAQ_Bdot(DAQ):
     
         time = data[:, 0]
         channels = data[:, 1:]
+
+        # --- Optional alternative: compute N and dt from time array ---
+        # N = len(time)
+        # dt = np.mean(np.diff(time))  # robust even if slightly nonuniform
     
         return {
             "time": time,
             "channels": channels,
-            "channel_names": channel_names
+            "channel_names": channel_names,
+            "N": N,
+            "dt": dt
+               
         }
     
 

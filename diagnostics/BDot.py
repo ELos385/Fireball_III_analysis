@@ -25,4 +25,5 @@ class BDot(Diagnostic):
 
     def get_scope_data(self, shot_dict):
         return self.DAQ.get_shot_data(self.config['name'], shot_dict)
+
     
