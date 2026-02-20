@@ -4,7 +4,7 @@ data_folder = '/chromox_cameras/HRM5/'
 data_stem = 'OD' # empty for some DAQs 
 data_type = 'csv'
 data_ext = '.csv'
-calib_subfolder = './ESpecs' # optional
+calib_subfolder = './ESpecs/' # optional
 calib_file = 'HRM5_calibs.toml'#'HRM5_transform_LAMP_1749111754935000.pkl'
 
 [HRM6]
@@ -13,15 +13,24 @@ data_folder = '/chromox_cameras/HRM6/'
 data_stem = 'OD' # empty for some DAQs 
 data_type = 'csv'
 data_ext = '.csv'
-
-calib_subfolder = './ESpecs' # optional
+calib_subfolder = './ESpecs/' # optional
 calib_file = 'HRM6_calibs.toml'#'HRM6_transform_LAMP_1749111754935000.pkl'
 
-[Template]                          # This is the self.config['name'] entry
-type = 'Template'                   # This needs to be the exact spelling of the class name
-data_folder = '/test/'              # Relative to data_root
-data_stem = ''                      # empty for some DAQs 
-data_type = 'asc'                   # Implemented types: pickle, json, csv, numpy, toml, tif, asc
-data_ext = '.asc'                   # implemented extensions: .pickle, .json, .npy, .toml, .tif, .asc (fallback if data_type is unknown)
-calib_subfolder = '/'               # optional
-calib_file = 'HRM6_calibs.toml'
+[SCOPE1]
+type = 'BDot'
+data_folder = '/scope_pool05720010/'
+data_stem = 'scope1'
+data_type = 'scope'
+data_ext = '.csv'
+calib_subfolder = './BDot/' # optional
+calib_file = 'SCOPE1_calibs.toml'
+
+[SCOPE2]
+type = 'BDot'
+data_folder = '/scope_pool05710001/'
+data_stem = 'scope2'
+data_type = 'scope'
+data_ext = '.csv'
+calib_subfolder = './BDot/' # optional
+calib_file = 'SCOPE2_calibs.toml'
+
