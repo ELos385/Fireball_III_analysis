@@ -198,6 +198,7 @@ class Fireball_DAQ(DAQ):
 
             if base not in path.parents and path != base:
                 raise ValueError("Path escapes base directory")
+            labels = [Path(shot_dict).name]
             shot_filepaths = [path]
 
         else:
