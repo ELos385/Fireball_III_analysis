@@ -172,7 +172,6 @@ class Fireball_DAQ(DAQ):
                 shot_filepaths = self.timeframe_to_filenames((start_time, end_time), diag_data_path)
 
 
-                
         # A single (relative) filepath can be provided as a string
         elif isinstance(shot_dict, str):
             base = Path(diag_data_path).resolve()
@@ -181,7 +180,7 @@ class Fireball_DAQ(DAQ):
             if base not in path.parents and path != base:
                 raise ValueError("Path escapes base directory")
             shot_filepaths = [path]
-        
+
         else:
             raise ValueError(f"Error: shot_dict {shot_dict} is not a valid input for "
                              f"get_shot_data() in {self.__name} DAQ. Please provide either "
@@ -246,6 +245,17 @@ class Fireball_DAQ(DAQ):
         """
         Convert timeframe (start_time, end_time) to list of filepaths
         whose filenames contain YYYYMMDDHHMMSS timestamps.
+        Parameters
+        ----------
+            timeframe : tuple or list
+                A tuple containing the start and end timestamps in the format YYYYMMDDHHMMSS.
+            data_path : str
+                The path to the directory where the files are located.
+        Returns
+        -------
+            file_paths : list
+                A list of file paths that have timestamps in their filenames falling within the
+                specified timeframe.
         """
 
         start_time, end_time = timeframe
@@ -279,14 +289,87 @@ class Fireball_DAQ(DAQ):
         return file_paths
 
 
-    def todo(self, item):
-        print(f"TODO: {item} functionality not implemented yet in {self.__name} DAQ.")
-    
-
     def normalize_timestamp(self, timestamp, direction):
+        """Converts timestamps of the form YYYYMMDD to YYYYMMDD000000 or YYYYMMDD235959,
+        depending on direction, for timeframe searching. If timestamp is already in the
+        form YYYYMMDDHHMMSS, it is returned unchanged.
+
+        Parameters
+        ----------
+            timestamp : str
+                The timestamp to normalize, in the form YYYYMMDD or YYYYMMDDHHMMSS
+            direction : str
+                The direction to normalize the timestamp, either 'UP' or 'DOWN'. 'UP'
+                will normalize to the end of the day (YYYYMMDD235959), while 'DOWN' will
+                normalize to the start of the day (YYYYMMDD000000).
+        Returns
+        -------
+            normalized_timestamp : str
+                The normalized timestamp in the form YYYYMMDDHHMMSS
+        """
         if len(timestamp) == 8:
             if direction == 'UP':
                 return timestamp + "235959"   # end of day
             elif direction == 'DOWN':
                 return timestamp + "000000"   # start of day
         return timestamp
+
+
+    # TODO: Rewrite and test. This is from Gemini DAQ.
+    def get_filepath(self, diag_name, shot_dict):
+        """Required function to return shot filepath, given the diagnostic name and a shot dict (or filename str)"""
+
+        diag_config = self.ex.diags[diag_name].config
+
+        # Check if shot_dict is not dictionary; could just be filepath
+        if isinstance(shot_dict, str):
+            shot_filepath = Path(f'{self.data_folder}/{shot_dict}') # should this be diagnostic folder?
+        else:
+            required = ['data_folder','data_ext','data_type']
+            for param in required:
+                if param not in diag_config:
+                    print(f"get_shot_data() error: {self.__name} DAQ requires a config parameter '{param}' for {diag_name}")
+                    return None
+
+            # TO DO: OR can use GSN?
+            if 'GSN' in shot_dict:
+                shot_dict = self._shot_dict_from_GSN(shot_dict['GSN'])
+
+            required = ['date','run','shotnum']
+            for param in required:
+                if param not in shot_dict:
+                    print(f"get_shot_data() error: {self.__name} DAQ requires a shot_dict['{param}'] value")
+                    return None
+            if 'burst' in shot_dict:
+                burst = shot_dict['burst']
+            else:
+                burst = None
+
+            shot_filepath = self._build_shot_filepath(diag_config['data_folder'], shot_dict['date'], shot_dict['run'], shot_dict['shotnum'], diag_config['data_ext'], burst=burst)
+
+        return shot_filepath
+
+
+    # TODO: Rewrite and test. This is from Gemini DAQ.
+    def build_time_point(self, shot_dict):
+        """Universal function to return a point in time for DAQ, for comparison, say in calibrations
+        """
+        # for Gemini, use date / run / shot
+        date_str = str(shot_dict['date'])
+        year = int(date_str[0:4])
+        month = int(date_str[4:6])
+        day = int(date_str[6:8])
+        if 'run' in shot_dict and shot_dict['run']:
+            run_str = shot_dict['run']
+            m = re.search(r'\d+$', run_str) # gets last numbers
+            run = int(m.group())
+        else:
+            run = 0
+        if 'shotnum' in shot_dict:
+            shotnum = shot_dict['shotnum']
+        else:
+            shotnum = 0
+
+        # weight the different components to make a unique increasing number?
+        time_point = year*1e10 + month*1e8 + day*1e6 + run*1000 + shotnum
+        return  time_point
