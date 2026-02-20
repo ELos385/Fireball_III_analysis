@@ -1,6 +1,6 @@
 # DAQ Required as a minimum. 
 [setup]
-DAQ = 'Fireball_DAQ'
+DAQ = 'FireballIII'
 
 # Required. Well, data folder at least. Data is absolute path, Others relative to Root folder.
 [paths]
