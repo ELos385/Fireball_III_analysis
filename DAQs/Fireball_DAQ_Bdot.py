@@ -119,8 +119,22 @@ class Fireball_DAQ_Bdot(DAQ):
 
         if N is None or dt is None:
             raise ValueError("Could not find Sample Interval or Record Length in header.")
+
+        # Find label line (contains 'Labels')
+        label_index = None
+        for i, line in enumerate(lines):
+            if "Labels" in line:
+                label_index = i
+                break
+    
+        if label_index is None:
+            raise ValueError("Could not find Labels in scope CSV.")
+    
+        # Extract channel names
+        label = lines[label_index].strip().split(',')
+        label_names = label[1:]  # everything after Labels
         
-        # Find header line (contains 'Time')
+        # Find header line (contains 'TIME')
         header_index = None
         for i, line in enumerate(lines):
             if "TIME" in line:
@@ -152,6 +166,7 @@ class Fireball_DAQ_Bdot(DAQ):
             "time": time,
             "channels": channels,
             "channel_names": channel_names,
+            "label_names": label_names,
             "N": N,
             "dt": dt
                
