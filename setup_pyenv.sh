@@ -10,8 +10,7 @@
 # -----------------------------
 # Configuration - CHANGE THESE
 # -----------------------------
-ENV_NAME="FBIII_online_analysis_env"                 # Name of your custom environment
-CERN_USER="blloyd"                 # Your CERN username
+ENV_NAME="FBIII"                 # Name of your custom environment
 PYTHON_VERSION="3.12"            # Python version for environment
 MAMBA_ROOT_PREFIX="${HOME}/mamba"
 MICROMAMBA="${MAMBA_ROOT_PREFIX}/bin/micromamba"
@@ -101,37 +100,37 @@ EOL
 
 # Register kernel so Jupyter can see it
 micromamba run -n ${ENV_NAME} python -m ipykernel install \
-  --prefix /home/${CERN_USER}/.local \
+  --prefix /home/${USER}/.local \
   --name ${ENV_NAME} \
   --display-name "Python ${ENV_NAME}"
   
 # -----------------------------
 # 7b: Copy FireballIII.py into LAMP DAQs folder if not already there
 # -----------------------------
-echo "Checking if FireballIII.py exists in LAMP.DAQs folder..."
+# echo "Checking if FireballIII.py exists in LAMP.DAQs folder..."
 
-# Get DAQ_PATH, ignoring LAMP startup message
-DAQ_PATH=$(micromamba run -n "${ENV_NAME}" python - <<'PYTHON_EOF'
-import os
-import LAMP.DAQs as DAQs
-# Only print the first path
-print(os.path.abspath(DAQs.__path__[0]))
-PYTHON_EOF
-)
+# # Get DAQ_PATH, ignoring LAMP startup message
+# DAQ_PATH=$(micromamba run -n "${ENV_NAME}" python - <<'PYTHON_EOF'
+# import os
+# import LAMP.DAQs as DAQs
+# # Only print the first path
+# print(os.path.abspath(DAQs.__path__[0]))
+# PYTHON_EOF
+# )
 
-# Take only the last line in case LAMP prints messages before
-DAQ_PATH=$(echo "$DAQ_PATH" | tail -n 1 | tr -d '[:space:]')
+# # Take only the last line in case LAMP prints messages before
+# DAQ_PATH=$(echo "$DAQ_PATH" | tail -n 1 | tr -d '[:space:]')
 
-# Check and copy FireballIII.py only if necessary
-if [ -d "${DAQ_PATH}" ]; then
-    if [ ! -f "${DAQ_PATH}/FireballIII.py" ]; then
-        cp FireballIII.py "${DAQ_PATH}/"
-        echo "FireballIII.py copied to ${DAQ_PATH}"
-    else
-        echo "FireballIII.py already exists in ${DAQ_PATH}, skipping copy."
-    fi
-else
-    echo "Error: LAMP.DAQs folder not found at ${DAQ_PATH}"
-fi
+# # Check and copy FireballIII.py only if necessary
+# if [ -d "${DAQ_PATH}" ]; then
+#     if [ ! -f "${DAQ_PATH}/FireballIII.py" ]; then
+#         cp FireballIII.py "${DAQ_PATH}/"
+#         echo "FireballIII.py copied to ${DAQ_PATH}"
+#     else
+#         echo "FireballIII.py already exists in ${DAQ_PATH}, skipping copy."
+#     fi
+# else
+#     echo "Error: LAMP.DAQs folder not found at ${DAQ_PATH}"
+# fi
 
 echo "Setup complete! You can now select 'Python (${ENV_NAME})' in Jupyter."

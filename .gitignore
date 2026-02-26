@@ -1,11 +1,62 @@
+# =========================
+# Python bytecode
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# =========================
+# Virtual environments
+# =========================
+venv/
+.venv/
+env/
+fbiii_venv/
+fbiii_env/
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# Logs / runtime artifacts
+# =========================
+*.log
+*.tmp
+
+
+# =========================
+# Local configs
+# =========================
+# Use this to create your own local.toml. This does not get committed.
+# cp _local.toml local.toml
 local.toml
+
+# =========================
+# Local environment
+# =========================
+FBIII/
+data_root/*
+!data_root/.gitkeep
+calibs/andor/*
+!calibs/andor/andor.toml
+
+
+
 *.sys*
 .swanproject
 setup_pyenv_old.sh
 setup_pyenv_test.sh
-venv
-fbiii_venv
-fbiii_env
-__pycache__/
-*.pyc
-scripts/ESpecs/ESpecs_test.ipynb
