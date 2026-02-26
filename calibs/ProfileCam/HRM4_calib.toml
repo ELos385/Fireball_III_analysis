@@ -1,9 +1,9 @@
-[1749111996135000]
+[1700000000]
 notes = ''
-start = {'shot' = 1749111996135000} # when timeframe starts
-end = {'shot' = 1749153428535000} # when timeframe ends
+start = {'shot' = 1700000000} # when timeframe starts
+end = {'shot' = 1800000000} # when timeframe ends
 
-[1749111996135000.roi]
+[1700000000.roi]
 stage = "original"
 pixels = [
     [180, 0],

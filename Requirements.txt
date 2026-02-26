@@ -56,3 +56,5 @@ tzdata==2025.2
 virtualenv==20.31.2
 wcwidth==0.2.13
 wheel==0.46.3
+ipympl==0.9.3
+ipywidgets==8.1.2
