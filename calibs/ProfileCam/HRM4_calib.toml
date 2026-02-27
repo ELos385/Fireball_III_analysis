@@ -1,11 +1,17 @@
-[1700000000]
-notes = ''
-start = {'shot' = 1700000000} # when timeframe starts
-end = {'shot' = 1800000000} # when timeframe ends
+[FBIII]
+notes = "fireball III cropping around chromox screeen"
+start = {'shot' = 1700000000}
+end = {'shot' = 1800000000}
 
-[1700000000.roi]
+[FBIII.roi]
 stage = "original"
 pixels = [
     [180, 0],
     [450, 375]
 ]
+
+[FBIII.scale]
+pixel_width = 2.0
+pixel_height = 2.0
+x_units = "mm"
+y_units = "mm"

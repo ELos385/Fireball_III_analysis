@@ -40,7 +40,7 @@ class ProfileCam_(Diagnostic):
         # use diagnostic base function
         # loads calib id and run_img_calib for standard calibration routines
         # img, x, y = super().get_proc_shot(shot_dict, calib_id=calib_id, debug=debug)
-        img, x, y = super().get_proc_shot(shot_dict, calib_id=None, debug=debug)
+        img, x, y = super().get_proc_shot(shot_dict, calib_id=calib_id, debug=debug)
         if img is None:
             return None, None, None
 
