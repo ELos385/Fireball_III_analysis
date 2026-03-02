@@ -10,6 +10,8 @@ from LAMP.utils.image_proc import ImageProc
 from LAMP.utils.general import dict_update, mindex
 from LAMP.utils.plotting import *
 
+
+
 class ProfileCam_(Diagnostic):
     """
     Profile cams are HRM3 and HRM4
@@ -31,34 +33,32 @@ class ProfileCam_(Diagnostic):
         super().__init__(exp_obj, config_filepath)
         return
 
-    def get_proc_shot(self, shot_dict, calib_id=None, apply_disp=True, apply_div=True, apply_charge=True, roi_mm=None, roi_MeV=None, roi_mrad=None, debug=False):
+    def get_proc_shot(self, shot_dict, calib_id=None, debug=False):
         """
-        Return a processed shot using saved or passed calibrations. (there is no calibration for this for now)
+        Return a processed shot using saved or passed calibrations.
         Wraps base diagnostic class function, adding dispersion, divergence, charge.
         """
-
-        # use diagnostic base function
-        # loads calib id and run_img_calib for standard calibration routines
-        # img, x, y = super().get_proc_shot(shot_dict, calib_id=calib_id, debug=debug)
         img, x, y = super().get_proc_shot(shot_dict, calib_id=calib_id, debug=debug)
         if img is None:
             return None, None, None
 
-        # ========================================
-        # crop images around edge of Chromox screen
-        # ik this should probably go in calib, but i cba
-        # ========================================
-        
-        # crop = None
-        # if self.config["name"] == "HRM3":
-        #     crop = [215, 400, 50, 300]    # [xmin, xmax, ymin, ymax]
-        # elif self.config["name"] == "HRM4":
-        #     crop = [180, 450, 0, 375]    # [xmin, xmax, ymin, ymax]
-        # else:
-        #     print("what r u doing")
-
-        # if crop:
-        #     img = img[crop[2] : crop[3], crop[0] : crop[1]]
-        #     y, x = np.shape(img)
-        
         return img, x, y
+
+
+    def plot_proc_shot(self, shot_dict, calib_id=None, vmin=None, vmax=None, colormap='plasma', debug=False):
+
+        img, x, y = self.get_proc_shot(shot_dict, calib_id=calib_id, debug=debug)
+
+        if vmin is None:
+            vmin = np.nanmin(img)
+        if vmax is None:
+            vmax = np.percentile(img,99)
+
+
+        fig,ax = plt.subplots()
+        im = ax.imshow(img, vmin=vmin, vmax=vmax, cmap=get_colormap(colormap))
+        cb = plt.colorbar(im)
+        plt.title(self.shot_string(shot_dict))
+
+        return fig,ax
+        
