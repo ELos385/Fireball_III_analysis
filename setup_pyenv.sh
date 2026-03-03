@@ -69,7 +69,7 @@ micromamba activate "${ENV_NAME}"
 # -----------------------------
 # List modules by their Python import names
 
-MODULES=(ipywidgets)
+MODULES=(ipywidgets ipympl)
 
 missing=()
 
@@ -91,7 +91,20 @@ else
   echo "All modules already installed"
 fi
 
-
+# # Only enable nbextensions if 'notebook' is actually installed in the environment
+# if ${MICROMAMBA} run -p "${ENV_PATH}" python - <<'PY' >/dev/null 2>&1
+# import importlib.util
+# if importlib.util.find_spec("notebook") is None:
+#     raise SystemExit(1)
+# PY
+# then
+#   echo "Enabling nbextensions (classic notebook) inside the environment..."
+#   # Use micromamba run so the commands execute in the target env
+#   ${MICROMAMBA} run -p "${ENV_PATH}" jupyter nbextension enable --py --sys-prefix ipympl || true
+#   ${MICROMAMBA} run -p "${ENV_PATH}" jupyter nbextension enable --py --sys-prefix widgetsnbextension || true
+# else
+#   echo "Notebook not present in env — skipping nbextension enable. If you use JupyterLab >=3, no nbextension is needed."
+# fi
 # -----------------------------
 # 7: Install LAMP if missing
 # -----------------------------
