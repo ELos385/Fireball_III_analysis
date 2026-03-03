@@ -60,7 +60,22 @@ class Fireball_DAQ(DAQ):
 
 
     # Overwrite DAQ load_data to handle custom data types, e.g. asc files from spectroscopy
-    def load_data(self, shot_filepath, file_type=None):
+    def load_data(self, shot_filepath, file_type):
+        """Loads data from a given filepath, with support for custom file types such as .asc files used for spectroscopy in the Fireball series.
+        For supported file types, it calls the parent DAQ load_data function, and for .asc files, it uses the custom load_asc function.
+
+        Parameters
+        ----------
+            shot_filepath : str
+                The path to the file where the data is stored.
+            file_type : str
+                The type of the file, which determines how the data will be loaded.
+
+        Returns
+        -------
+            data : np.ndarray
+                The data loaded from the file, in a format determined by the file type.
+        """
         print(f"Loading data from {shot_filepath} with file_type {file_type} in {self.__name} DAQ.")
         if file_type in ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif']:
              data = super().load_data(shot_filepath, file_type=file_type)
@@ -110,7 +125,6 @@ class Fireball_DAQ(DAQ):
         diag_data_path = os.path.join(Path(self.data_folder),
                                       Path(diag_config['data_folder'].lstrip("/\\")))
         
-
 
         # Intermediate array of all relevant (absolute) filepaths
         shot_filepaths = []
