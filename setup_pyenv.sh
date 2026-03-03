@@ -69,7 +69,7 @@ micromamba activate "${ENV_NAME}"
 # -----------------------------
 # List modules by their Python import names
 
-MODULES=(ipywidgets)
+MODULES=(ipywidgets ipympl)
 
 missing=()
 
@@ -90,7 +90,6 @@ if [ ${#missing[@]} -gt 0 ]; then
 else
   echo "All modules already installed"
 fi
-
 
 # -----------------------------
 # 7: Install LAMP if missing
