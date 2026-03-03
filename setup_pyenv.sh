@@ -11,6 +11,7 @@
 # Configuration - CHANGE THESE
 # -----------------------------
 ENV_NAME="FBIII"                 # Name of your custom environment
+CERN_USER="elos"                 # Your CERN username
 PYTHON_VERSION="3.12"            # Python version for environment
 MAMBA_ROOT_PREFIX="${HOME}/mamba"
 MICROMAMBA="${MAMBA_ROOT_PREFIX}/bin/micromamba"
@@ -51,7 +52,7 @@ echo "Micromamba initialized."
 if [ ! -d "${MAMBA_ROOT_PREFIX}/envs/${ENV_NAME}" ]; then
     echo "Creating environment ${ENV_NAME}..."
     ${MICROMAMBA} create -y -p "${MAMBA_ROOT_PREFIX}/envs/${ENV_NAME}" \
-        python=${PYTHON_VERSION} ipykernel scipy matplotlib pandas scikit-image opencv toml
+        python=${PYTHON_VERSION} ipykernel scipy matplotlib pandas scikit-image opencv toml ipywidgets
 else
     echo "Environment ${ENV_NAME} already exists."
 fi
@@ -64,7 +65,35 @@ eval "$(${MICROMAMBA} shell hook --shell=bash)"
 micromamba activate "${ENV_NAME}"
 
 # -----------------------------
-# 6: Install LAMP if missing
+# 6: Check installed modules, install any pre-requisites if missing.
+# -----------------------------
+# List modules by their Python import names
+
+MODULES=(ipywidgets)
+
+missing=()
+
+# Check each module
+for mod in "${MODULES[@]}"; do
+  if ! ${MICROMAMBA} run -p "${ENV_PATH}" python -c "import ${mod}" >/dev/null 2>&1; then
+    echo "${mod} missing"
+    missing+=("${mod}")
+  else
+    echo "${mod} already installed"
+  fi
+done
+
+# Install missing modules (if any)
+if [ ${#missing[@]} -gt 0 ]; then
+  echo "Installing: ${missing[*]}"
+  ${MICROMAMBA} install -y -p "${ENV_PATH}" "${missing[@]}"
+else
+  echo "All modules already installed"
+fi
+
+
+# -----------------------------
+# 7: Install LAMP if missing
 # -----------------------------
 echo "Checking if LAMP is installed..."
 if ! micromamba run -n "${ENV_NAME}" python -c "import LAMP" &>/dev/null; then
@@ -76,7 +105,7 @@ else
 fi
 
 # -----------------------------
-# 7: Configure Jupyter kernel
+# 8: Configure Jupyter kernel
 # -----------------------------
 echo "Setting up Jupyter kernel..."
 mkdir -p "${KERNEL_DIR}"
@@ -100,7 +129,7 @@ EOL
 
 # Register kernel so Jupyter can see it
 micromamba run -n ${ENV_NAME} python -m ipykernel install \
-  --prefix /home/${USER}/.local \
+  --prefix /home/${CERN_USER}/.local \
   --name ${ENV_NAME} \
   --display-name "Python ${ENV_NAME}"
   
