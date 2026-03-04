@@ -35,6 +35,12 @@ class BDot(Diagnostic):
             shot_dict
         )
 
+        if shot_data is None:
+            return None
+
+        if isinstance(shot_data, dict) and 'data' in shot_data:
+            shot_data = shot_data['data']
+
         self._scope_cache[cache_key] = shot_data
         return shot_data
 

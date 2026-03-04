@@ -19,7 +19,8 @@ class Fireball_DAQ(DAQ):
     __authors = ['Brendan Kettle', 'Eva Los', 'Maximilian Mudra']
 
     # These file_types can be used so far
-    supported_file_types = ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif', 'asc']
+    supported_file_types = ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif', 'asc', 'scope']
+
 
 
     def __init__(self, exp_obj):
@@ -58,7 +59,106 @@ class Fireball_DAQ(DAQ):
             data = np.array(list(map(list, data)))
         return data
 
+    def load_scope(self, filepath):
+        """
+            Loads data from .csv scope files, which are used for Bdot diagnostic. 
+            Skips first 16 rows.
 
+            Parameters
+            ----------
+                filepath : str
+                    The path to the .asc file where the spectroscopy data is stored.
+
+            Returns
+            -------
+            dict
+                {
+                    "time": np.ndarray,
+                    "channels": np.ndarray,
+                    "channel_names": list of str,
+                    "N": int,      # number of samples
+                    "dt": float    # time step
+                }
+        """
+        if not Path(filepath).suffix == '.csv':
+            raise ValueError(f"Error: load_scope() function only supports .csv files, "
+                            f"but {filepath} has extension {Path(filepath).suffix}")
+            
+        # Read all lines
+        with open(filepath, 'r') as f:
+            lines = f.readlines()
+
+        # Extract N and dt from header
+        N = None
+        dt = None
+        
+        for line in lines:
+            # Strip whitespace and split by comma
+            parts = line.strip().split(',')
+            if parts[0].lower() == "sample interval":
+                dt = float(parts[1])
+            if parts[0].lower() == "record length":
+                N = int(parts[1])
+            # Stop early if we have both
+            if N is not None and dt is not None:
+                break
+
+        if N is None or dt is None:
+            raise ValueError("Could not find Sample Interval or Record Length in header.")
+
+        # Find label line (contains 'Labels')
+        label_index = None
+        for i, line in enumerate(lines):
+            if "Labels" in line:
+                label_index = i
+                break
+    
+        if label_index is None:
+            raise ValueError("Could not find Labels in scope CSV.")
+    
+        # Extract channel names
+        label = lines[label_index].strip().split(',')
+        label_names = label[1:]  # everything after Labels
+        
+        # Find header line (contains 'TIME')
+        header_index = None
+        for i, line in enumerate(lines):
+            if "TIME" in line:
+                header_index = i
+                break
+    
+        if header_index is None:
+            raise ValueError("Could not find Time header in scope CSV.")
+    
+        # Extract channel names
+        header = lines[header_index].strip().split(',')
+        channel_names = header[1:]  # everything after time
+    
+        # Load numeric data only
+        data = np.genfromtxt(
+            filepath,
+            delimiter=',',
+            skip_header=header_index + 1
+        )
+    
+        time = data[:, 0]
+        channels = data[:, 1:]
+
+        # --- Optional alternative: compute N and dt from time array ---
+        # N = len(time)
+        # dt = np.mean(np.diff(time))  # robust even if slightly nonuniform
+    
+        return {
+            "time": time,
+            "channels": channels,
+            "channel_names": channel_names,
+            "label_names": label_names,
+            "N": N,
+            "dt": dt
+               
+        }
+    
+    
     # Overwrite DAQ load_data to handle custom data types, e.g. asc files from spectroscopy
     def load_data(self, shot_filepath, file_type):
         """Loads data from a given filepath, with support for custom file types such as .asc files used for spectroscopy in the Fireball series.
@@ -81,6 +181,8 @@ class Fireball_DAQ(DAQ):
              data = super().load_data(shot_filepath, file_type=file_type)
         elif file_type == 'asc':
             data = self.load_asc(Path(shot_filepath))
+        elif file_type == 'scope':
+            data = self.load_scope(shot_filepath)
         # elif file_type == 'image':
             # data = super().load_imdata(shot_filepath)
         else:
@@ -228,7 +330,6 @@ class Fireball_DAQ(DAQ):
         # Initialize empty list to hold shot data and used file paths
         shot_data = []
         used_files = [] # to keep track of which files we actually used, in case some were missing or didn't match the criteria
-
         # Iterate through the filepaths and load the data
         for shot_filepath in shot_filepaths:
             if os.path.exists(shot_filepath):
