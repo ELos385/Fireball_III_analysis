@@ -36,10 +36,12 @@ class BDot(Diagnostic):
         )
 
         if shot_data is None:
+            print(f"[INFO] No data found for {self.config['name']} in shot {shot_dict}")
             return None
 
         if isinstance(shot_data, dict) and 'data' in shot_data:
             shot_data = shot_data['data']
+            
 
         self._scope_cache[cache_key] = shot_data
         return shot_data
@@ -132,37 +134,39 @@ class BDot(Diagnostic):
 
         fig, ax = plt.subplots(figsize=(10, 5))
 
+                # Determine alpha based on number of shots
+        alpha_val = 1.0 if len(voltages) == 1 else 0.75
+        
         if average:
             voltage_means = np.mean(voltages, axis=0)
             if show_error:
                 voltage_stds = np.std(voltages, axis=0)
-
+        
             if voltages.ndim == 3:
                 for i, ch in enumerate(channels):
                     ax.plot(time, voltage_means[:, i],
                             label=f'{ch} mean', zorder=3, alpha=0.8)
-
+        
                     if show_error:
                         ax.plot(time, voltage_means[:, i] + voltage_stds[:, i],
-                                '--', zorder=1, alpha=0.75)
+                                '--', zorder=1, alpha=0.75, label=f'{ch} +1σ')
                         ax.plot(time, voltage_means[:, i] - voltage_stds[:, i],
-                                '--', zorder=1, alpha=0.75)
+                                '--', zorder=1, alpha=0.75, label=f'{ch} -1σ')
             else:
                 ax.plot(time, voltage_means, label='mean', zorder=3)
-
+        
                 if show_error:
-                    ax.plot(time, voltage_means + voltage_stds, '--', zorder=1)
-                    ax.plot(time, voltage_means - voltage_stds, '--', zorder=1)
-
+                    ax.plot(time, voltage_means + voltage_stds, '--', zorder=1, label=f'+1σ')
+                    ax.plot(time, voltage_means - voltage_stds, '--', zorder=1, label=f'-1σ')
+        
         else:
+            # Single loop handles both 2D and 3D voltages
             for i, v in enumerate(voltages):
                 if voltages.ndim == 3:
                     for j, ch in enumerate(channels):
-                        ax.plot(time, v[:, j],
-                                label=f'Shot {i} - {ch}', alpha=0.75)
+                        ax.plot(time, v[:, j], label=f'Shot {i} - {ch}', alpha=alpha_val)
                 else:
-                    ax.plot(time, v,
-                            label=f'Shot {i}', alpha=0.75)
+                    ax.plot(time, v, label=f'Shot {i}', alpha=alpha_val)
 
         ax.set_xlabel('Time [s]')
         ax.set_ylabel('Voltage [V]')

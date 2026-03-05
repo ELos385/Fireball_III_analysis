@@ -106,6 +106,11 @@ class Fireball_DAQ(DAQ):
         if N is None or dt is None:
             raise ValueError("Could not find Sample Interval or Record Length in header.")
 
+        # If file has no samples, return None immediately
+        if N == 0:
+            return None
+
+
         # Find label line (contains 'Labels')
         label_index = None
         for i, line in enumerate(lines):
@@ -140,7 +145,11 @@ class Fireball_DAQ(DAQ):
             delimiter=',',
             skip_header=header_index + 1
         )
-    
+
+        # If somehow data is empty, return None
+        if data.size == 0:
+            return None
+        
         time = data[:, 0]
         channels = data[:, 1:]
 

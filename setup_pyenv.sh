@@ -128,7 +128,7 @@ EOL
 
 # Register kernel so Jupyter can see it
 micromamba run -n ${ENV_NAME} python -m ipykernel install \
-  --prefix /home/${CERN_USER}/.local \
+  --prefix /home/${USER}/.local \
   --name ${ENV_NAME} \
   --display-name "Python ${ENV_NAME}"
   
