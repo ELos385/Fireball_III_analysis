@@ -67,7 +67,7 @@ def _extract_cross_voltages(scopeA, scopeB, shot_dict, chA, chB):
 
     result = np.stack(result, axis=0)
 
-    return result, time_common, dataA, dataB
+    return result, time_common, dt, dataA, dataB
 
 
 # ------------------------------------------------------------------
@@ -79,140 +79,105 @@ def plot_cross_scope(scopeA,
                      shot_dict,
                      chA,
                      chB,
+                     fft=False,
                      average=False,
                      show_error=True,
                      title=None,
                      xmin=None,
                      xmax=None,
                      ymin=None,
-                     ymax=None):
+                     ymax=None,
+                     fmax=None):
 
-    result, time, dataA, dataB = \
-        _extract_cross_voltages(scopeA, scopeB, shot_dict, chA, chB)
-
-    fig, ax = plt.subplots(figsize=(10, 5))
-
-    alpha_val = 1.0 if len(result) == 1 else 0.75
-
-    if average:
-        mean = np.mean(result, axis=0)
-
-        ax.plot(time, mean, label="mean", zorder=3)
-
-        if show_error:
-            std = np.std(result, axis=0)
-            ax.plot(time, mean + std, "--", zorder=1)
-            ax.plot(time, mean - std, "--", zorder=1)
-
-    else:
-        for i, v in enumerate(result):
-            ax.plot(time, v, label=f"Shot {i}", alpha=alpha_val)
-
-    ax.set_xlabel("Time [s]")
-    ax.set_ylabel("Voltage [V]")
-
-    # ---- Consistent title formatting ----
-    if title is None:
-
-        scopeA_name = scopeA.config['name']
-        scopeB_name = scopeB.config['name']
-
-        labelA = dataA[0]['label_names'][
-            dataA[0]['channel_names'].index(chA)
-        ]
-        labelB = dataB[0]['label_names'][
-            dataB[0]['channel_names'].index(chB)
-        ]
-
-        title = (
-            f"{scopeA_name}: {chA} ({labelA}) - "
-            f"{scopeB_name}: {chB} ({labelB})"
-        )
-
+        signals, time, dt, dataA, dataB = \
+            _extract_cross_voltages(scopeA, scopeB, shot_dict, chA, chB)
+    
+        fig, ax = plt.subplots(figsize=(10,5))
+    
+        # -----------------------------
+        # FFT branch
+        # -----------------------------
+        if fft:
+    
+            signals, x = _compute_fft(signals, dt)
+    
+            if fmax is not None:
+                mask = x <= fmax
+                x = x[mask]
+                signals = signals[:, mask]
+    
+            xlabel = "Frequency [Hz]"
+            ylabel = "Amplitude"
+    
+        # -----------------------------
+        # Time domain branch
+        # -----------------------------
+        else:
+    
+            x = time
+            xlabel = "Time [s]"
+            ylabel = "Voltage [V]"
+    
+        alpha_val = 1.0 if len(signals) == 1 else 0.75
+    
         if average:
-            title += " (averaged)"
+    
+            mean = np.mean(signals, axis=0)
+            ax.plot(x, mean, label="mean", zorder=3)
+    
+            if show_error:
+                std = np.std(signals, axis=0)
+                ax.plot(x, mean + std, "--", zorder=1)
+                ax.plot(x, mean - std, "--", zorder=1)
+    
+        else:
+    
+            for i, v in enumerate(signals):
+                ax.plot(x, v, label=f"Shot {i}", alpha=alpha_val)
+    
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+    
+        # -----------------------------
+        # Title formatting
+        # -----------------------------
+        if title is None:
+    
+            scopeA_name = scopeA.config['name']
+            scopeB_name = scopeB.config['name']
+    
+            labelA = dataA[0]['label_names'][dataA[0]['channel_names'].index(chA)]
+            labelB = dataB[0]['label_names'][dataB[0]['channel_names'].index(chB)]
+    
+            prefix = "FFT - " if fft else ""
+    
+            title = (
+                f"{prefix}{scopeA_name}: {chA} ({labelA}) - "
+                f"{scopeB_name}: {chB} ({labelB})"
+            )
+    
+            if average:
+                title += " (averaged)"
+    
+        ax.set_title(title)
+    
+        if xmin is not None or xmax is not None:
+            ax.set_xlim(left=xmin, right=xmax)
+    
+        if ymin is not None or ymax is not None:
+            ax.set_ylim(bottom=ymin, top=ymax)
+    
+        ax.legend()
+        fig.tight_layout()
+        plt.show()
 
-    ax.set_title(title)
+def _compute_fft(signals, dt):
 
-    if xmin is not None or xmax is not None:
-        ax.set_xlim(left=xmin, right=xmax)
-
-    if ymin is not None or ymax is not None:
-        ax.set_ylim(bottom=ymin, top=ymax)
-
-    ax.legend()
-    fig.tight_layout()
-    plt.show()
-
-
-# ------------------------------------------------------------------
-# Frequency-domain
-# ------------------------------------------------------------------
-
-def plot_cross_scope_fft(scopeA,
-                         scopeB,
-                         shot_dict,
-                         chA,
-                         chB,
-                         average=False,
-                         show_error=True,
-                         title=None,
-                         fmax=None):
-
-    result, _, dataA, dataB = \
-        _extract_cross_voltages(scopeA, scopeB, shot_dict, chA, chB)
-
-    N = dataA[0]['N']
-    dt = dataA[0]['dt']
+    N = signals.shape[1]   # actual signal length
     freqs = np.fft.rfftfreq(N, dt)
 
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fft_vals = np.abs(np.fft.rfft(signals, axis=1))
 
-    if average:
-        fft_vals = np.abs(np.fft.rfft(result, axis=1))
-        mean = np.mean(fft_vals, axis=0)
+    return fft_vals, freqs
 
-        ax.plot(freqs, mean, linewidth=2, label="mean", zorder=3)
 
-        if show_error:
-            std = np.std(fft_vals, axis=0)
-            ax.plot(freqs, mean + std, "--")
-            ax.plot(freqs, mean - std, "--")
-
-    else:
-        for i, v in enumerate(result):
-            fft_val = np.abs(np.fft.rfft(v))
-            ax.plot(freqs, fft_val, label=f"Shot {i}")
-
-    if fmax:
-        ax.set_xlim(0, fmax)
-
-    ax.set_xlabel("Frequency [Hz]")
-    ax.set_ylabel("Amplitude")
-
-    # ---- Consistent title formatting ----
-    if title is None:
-
-        scopeA_name = scopeA.config['name']
-        scopeB_name = scopeB.config['name']
-
-        labelA = dataA[0]['label_names'][
-            dataA[0]['channel_names'].index(chA)
-        ]
-        labelB = dataB[0]['label_names'][
-            dataB[0]['channel_names'].index(chB)
-        ]
-
-        title = (
-            f"FFT - {scopeA_name}: {chA} ({labelA}) - "
-            f"{scopeB_name}: {chB} ({labelB})"
-        )
-
-        if average:
-            title += " (averaged)"
-
-    ax.set_title(title)
-
-    ax.legend()
-    fig.tight_layout()
-    plt.show()
