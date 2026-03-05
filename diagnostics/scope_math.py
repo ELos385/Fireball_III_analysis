@@ -127,8 +127,8 @@ def plot_cross_scope(scopeA,
     
             if show_error:
                 std = np.std(signals, axis=0)
-                ax.plot(x, mean + std, "--", zorder=1)
-                ax.plot(x, mean - std, "--", zorder=1)
+                ax.plot(x, mean + std, "--", zorder=1,  label=f'+1σ')
+                ax.plot(x, mean - std, "--", zorder=1,  label=f'+1σ')
     
         else:
     
