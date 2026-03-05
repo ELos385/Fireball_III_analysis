@@ -34,22 +34,40 @@ def _extract_cross_voltages(scopeA, scopeB, shot_dict, chA, chB):
     idxA = channel_index_A[chA]
     idxB = channel_index_B[chB]
 
-    time = dataA[0]['time']
-    result = []
+    dtA = dataA[0]['dt']
+    dtB = dataB[0]['dt']
 
+    if not np.isclose(dtA, dtB):
+        raise ValueError("Scopes have different dt values; cannot align without interpolation.")
+
+    dt = dtA 
+
+    # Determine overlapping time range
+    t_start = max(dataA[0]['time'][0], dataB[0]['time'][0])
+    t_end   = min(dataA[0]['time'][-1], dataB[0]['time'][-1])
+
+    # Compute indices for the overlap
+    def overlap_indices(time_array):
+        start_idx = int(round((t_start - time_array[0]) / dt))
+        end_idx   = int(round((t_end - time_array[0]) / dt)) + 1
+        return start_idx, end_idx
+
+    idx_start_A, idx_end_A = overlap_indices(dataA[0]['time'])
+    idx_start_B, idx_end_B = overlap_indices(dataB[0]['time'])
+
+    time_common = dataA[0]['time'][idx_start_A:idx_end_A]
+
+    result = []
     for shotA, shotB in zip(dataA, dataB):
 
-        if not np.allclose(shotA['time'], shotB['time']):
-            raise ValueError("Time arrays do not match between scopes.")
-
-        vA = shotA['channels'][:, idxA]
-        vB = shotB['channels'][:, idxB]
+        vA = shotA['channels'][:, idxA][idx_start_A:idx_end_A]
+        vB = shotB['channels'][:, idxB][idx_start_B:idx_end_B]
 
         result.append(vA - vB)
 
     result = np.stack(result, axis=0)
 
-    return result, time, dataA, dataB
+    return result, time_common, dataA, dataB
 
 
 # ------------------------------------------------------------------
@@ -74,6 +92,8 @@ def plot_cross_scope(scopeA,
 
     fig, ax = plt.subplots(figsize=(10, 5))
 
+    alpha_val = 1.0 if len(result) == 1 else 0.75
+
     if average:
         mean = np.mean(result, axis=0)
 
@@ -86,7 +106,7 @@ def plot_cross_scope(scopeA,
 
     else:
         for i, v in enumerate(result):
-            ax.plot(time, v, label=f"Shot {i}", alpha=0.75)
+            ax.plot(time, v, label=f"Shot {i}", alpha=alpha_val)
 
     ax.set_xlabel("Time [s]")
     ax.set_ylabel("Voltage [V]")
