@@ -16,7 +16,7 @@ class Fireball_DAQ(DAQ):
     """
     __version = 0.1
     __name = 'Fireball_DAQ'
-    __authors = ['Brendan Kettle', 'Eva Los', 'Maximilian Mudra']
+    __authors = ['Brendan Kettle', 'Eva Los', 'Maximilian Mudra', 'Margarida Pereira']
 
     # These file_types can be used so far
     supported_file_types = ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif', 'asc', 'scope']
