@@ -108,6 +108,7 @@ class BDot(Diagnostic):
                    subtract=None,
                    average=False,
                    show_error=True,
+                   fft=False,
                    title=None,
                    xmin=None,
                    xmax=None,
@@ -132,6 +133,14 @@ class BDot(Diagnostic):
         voltages, channel_index, all_channel_names = \
             self._extract_voltages(shot_data, channels, subtract)
 
+        if channels is None and not subtract:
+            channels = all_channel_names
+
+        if fft:
+            x_t, voltages = self._compute_fft(voltages, shot_data)
+        else:
+            x_t = time
+
         fig, ax = plt.subplots(figsize=(10, 5))
 
                 # Determine alpha based on number of shots
@@ -144,32 +153,36 @@ class BDot(Diagnostic):
         
             if voltages.ndim == 3:
                 for i, ch in enumerate(channels):
-                    ax.plot(time, voltage_means[:, i],
+                    ax.plot(x_t, voltage_means[:, i],
                             label=f'{ch} mean', zorder=3, alpha=0.8)
         
                     if show_error:
-                        ax.plot(time, voltage_means[:, i] + voltage_stds[:, i],
+                        ax.plot(x_t, voltage_means[:, i] + voltage_stds[:, i],
                                 '--', zorder=1, alpha=0.75, label=f'{ch} +1σ')
-                        ax.plot(time, voltage_means[:, i] - voltage_stds[:, i],
+                        ax.plot(x_t, voltage_means[:, i] - voltage_stds[:, i],
                                 '--', zorder=1, alpha=0.75, label=f'{ch} -1σ')
             else:
-                ax.plot(time, voltage_means, label='mean', zorder=3)
+                ax.plot(x_t, voltage_means, label='mean', zorder=3)
         
                 if show_error:
-                    ax.plot(time, voltage_means + voltage_stds, '--', zorder=1, label=f'+1σ')
-                    ax.plot(time, voltage_means - voltage_stds, '--', zorder=1, label=f'-1σ')
+                    ax.plot(x_t, voltage_means + voltage_stds, '--', zorder=1, label=f'+1σ')
+                    ax.plot(x_t, voltage_means - voltage_stds, '--', zorder=1, label=f'-1σ')
         
         else:
             # Single loop handles both 2D and 3D voltages
             for i, v in enumerate(voltages):
                 if voltages.ndim == 3:
                     for j, ch in enumerate(channels):
-                        ax.plot(time, v[:, j], label=f'Shot {i} - {ch}', alpha=alpha_val)
+                        ax.plot(x_t, v[:, j], label=f'Shot {i} - {ch}', alpha=alpha_val)
                 else:
-                    ax.plot(time, v, label=f'Shot {i}', alpha=alpha_val)
+                    ax.plot(x_t, v, label=f'Shot {i}', alpha=alpha_val)
 
-        ax.set_xlabel('Time [s]')
-        ax.set_ylabel('Voltage [V]')
+        if fft:
+            ax.set_xlabel("Frequency [Hz]")
+            ax.set_ylabel("Amplitude")
+        else:
+            ax.set_xlabel("Time [s]")
+            ax.set_ylabel("Voltage [V]")
 
         # ----- Automatic title -----
         if title is None:
@@ -193,6 +206,9 @@ class BDot(Diagnostic):
             if average:
                 title += " (averaged)"
 
+        if fft:
+            title = "FFT - " + title
+
         ax.set_title(title)
 
         if xmin is not None or xmax is not None:
@@ -205,95 +221,13 @@ class BDot(Diagnostic):
         fig.tight_layout()
         plt.show()
 
-    # ------------------------------------------------------------------
-    # Frequency-domain plotting
-    # ------------------------------------------------------------------
 
-    def plot_fft(self,
-                 shot_dict,
-                 channels=None,
-                 subtract=None,
-                 average=False,
-                 show_error=True,
-                 title=None,
-                 fmax=None):
-
-        shot_data = self.get_scope_data(shot_dict)
-        if isinstance(shot_data, dict):
-            shot_data = [shot_data]
-
-        voltages, channel_index, all_channel_names = \
-            self._extract_voltages(shot_data, channels, subtract)
-
+    def _compute_fft(self, voltages, shot_data):
         N = shot_data[0]['N']
         dt = shot_data[0]['dt']
+    
         freqs = np.fft.rfftfreq(N, dt)
-
-        fig, ax = plt.subplots(figsize=(10, 5))
-
-        if average:
-            fft_vals = np.abs(np.fft.rfft(voltages, axis=1))
-            fft_mean = np.mean(fft_vals, axis=0)
-
-            if show_error:
-                fft_std = np.std(fft_vals, axis=0)
-
-            if fft_vals.ndim == 3:
-                for i, ch in enumerate(channels):
-                    ax.plot(freqs, fft_mean[:, i],
-                            linewidth=2, label=f'{ch} mean', zorder=3)
-
-                    if show_error:
-                        ax.plot(freqs, fft_mean[:, i] + fft_std[:, i], '--')
-                        ax.plot(freqs, fft_mean[:, i] - fft_std[:, i], '--')
-            else:
-                ax.plot(freqs, fft_mean,
-                        linewidth=2, label='Mean', zorder=3)
-
-                if show_error:
-                    ax.plot(freqs, fft_mean + fft_std, '--')
-                    ax.plot(freqs, fft_mean - fft_std, '--')
-
-        else:
-            for i, v in enumerate(voltages):
-                fft_val = np.abs(np.fft.rfft(v, axis=0))
-
-                if fft_val.ndim == 2:
-                    for j, ch in enumerate(channels):
-                        ax.plot(freqs, fft_val[:, j],
-                                label=f'Shot {i} - {ch}')
-                else:
-                    ax.plot(freqs, fft_val,
-                            label=f'Shot {i}', alpha = 0.75)
-
-        if fmax:
-            ax.set_xlim(0, fmax)
-
-        if title is None:
-            scope_name = self.config['name']
-            label_names = shot_data[0]['label_names']
-            title = "FFT - "
-
-            if subtract:
-                chA, chB = subtract
-                title += (
-                    f"{scope_name}: "
-                    f"{chA} ({label_names[channel_index[chA]]}) - "
-                    f"{chB} ({label_names[channel_index[chB]]})"
-                )
-            else:
-                ch_descs = [
-                    f"{ch} ({label_names[channel_index[ch]]})"
-                    for ch in channels
-                ]
-                title += f"{scope_name}: " + ", ".join(ch_descs)
-
-            if average:
-                title += " (averaged)"
-
-        ax.set_title(title)
-        ax.set_xlabel("Frequency [Hz]")
-        ax.set_ylabel("Amplitude")
-        ax.legend()
-        fig.tight_layout()
-        plt.show()
+        fft_vals = np.abs(np.fft.rfft(voltages, axis=1))
+    
+        return freqs, fft_vals
+    
