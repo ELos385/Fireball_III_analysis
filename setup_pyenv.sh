@@ -132,11 +132,19 @@ fi
 
 # Register kernel so Jupyter can see it
 echo "Registering Jupyter kernel..."
-"${MICROMAMBA}" run -p "${ENV_PATH}" python -m ipykernel install \
+
+export JUPYTER_DATA_DIR="${HOME}/.local/share/jupyter"
+unset JUPYTER_PATH
+unset JUPYTER_CONFIG_DIR
+mkdir -p "${JUPYTER_DATA_DIR}/kernels"
+
+"${MICROMAMBA}" run -p "${ENV_PATH}" env \
+    JUPYTER_DATA_DIR="${JUPYTER_DATA_DIR}" \
+    python -m ipykernel install \
     --user \
     --name "${ENV_NAME}" \
     --display-name "Python (${ENV_NAME})"
-  
+
 PYTHON_PATH=$("${MICROMAMBA}" run -p "${ENV_PATH}" python -c "import sys; print(sys.executable)")
 echo "Python executable: ${PYTHON_PATH}"
 echo "Setup complete."
