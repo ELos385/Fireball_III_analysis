@@ -24,7 +24,6 @@ class ProfileCamAnalysis:
     will allow you to load multiple images, grouping them by shot type (eg "gas" "plasma")
     can take lineouts in a region of interest
     then average over shots of a given type
-    and plot a comparison between these types
     """
 
     def __init__(self, diagnostic: Diagnostic, calib_id: str):
@@ -86,11 +85,9 @@ class ProfileCamAnalysis:
 
             all_lineouts = np.asarray(all_lineouts)
             
-            # ik its cursed but idc
-            try: x_units = self.diagnostic.calib_dict["scale"]["x_units"]
-            except: x_units = "None"
-            try: y_units = self.diagnostic.calib_dict["scale"]["y_units"]
-            except: y_units = "None"
+            scale = self.diagnostic.calib_dict.get("scale", {})
+            x_units = scale.get("x_units", "None")
+            y_units = scale.get("y_units", "None")
      
             results[shot_type] = ProfileCamGroup(
                 shot_numbers = shots_list,

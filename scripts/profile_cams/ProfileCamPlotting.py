@@ -39,12 +39,13 @@ def plot_group_overview(group: ProfileCamGroup):
     
     try:
         phys_axis = roi.lineout_axis(group.x, group.y)
+    except NotImplementedError:
+        print(f"ROI of type {type(roi)} does not support physical units... yet")
+    else:
         xs, units = phys_axis.values, phys_axis.units
         ax_top = ax_lineouts.twiny()
         ax_top.set_xlim(xs[0], xs[-1])
         ax_top.set_xlabel(f"distance ({units})")
-    except NotImplementedError:
-        print(f"ROI of type {type(roi)} does not support physical units... yet")
 
     plt.show()
 
@@ -67,17 +68,16 @@ def plot_group_comparison(groups: Dict[str, ProfileCamGroup]):
 
 
 
+    roi = next(iter(groups.values()))._roi
     try:
-        roi = next(iter(groups.values()))._roi
         phys_axis = roi.lineout_axis(group.x, group.y)
+    except (NotImplementedError, AttributeError):
+        print(f"ROI of type {type(roi)} does not support physical units... yet")
+    else:
         xs, units = phys_axis.values, phys_axis.units
         ax_top = ax.twiny()
         ax_top.set_xlim(xs[0], xs[-1])
         ax_top.set_xlabel(f"distance ({units})")
-    except (NotImplementedError, AttributeError):
-        print(f"ROI of type {type(roi)} does not support physical units... yet")
-
-
 
     
     plt.show()
