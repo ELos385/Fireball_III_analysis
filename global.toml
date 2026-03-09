@@ -1,10 +1,13 @@
 # DAQ Required as a minimum. 
 [setup]
-DAQ = 'FireballIII'
-# DAQ = 'Fireball_DAQ'
+# DAQ = 'FireballIII'
+DAQ = 'Fireball_DAQ'
 
 # Required. Well, data folder at least. Data is absolute path, Others relative to Root folder.
 [paths]
 calibs_folder = './calibs/'
 user_diagnostics = 'diagnostics.' # this is as per python moadule loading. So '.' to represent folders
 user_DAQs = 'DAQs.'
+
+[DAQ.logging]
+level = "DEBUG" # DEBUG, INFO, WARNING, ERROR, CRITICAL
