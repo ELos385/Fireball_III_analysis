@@ -32,22 +32,16 @@ for key, value in template.config.items():
 
 
 shot_dict_string_exists = 'test.asc'
-shot_dict_string_nonexists = 'nonexistent.asc'
-shot_dict_filename_single = {'filename': 'test.asc'}
-shot_dict_filename_multiple = {'filename': ['test.asc', 'test2.asc']}
-shot_dict_timestamp_single_short = {'timestamp': ['20260212']}
-shot_dict_timestamp_single_long = {'timestamp': ['20260212235959']}
-shot_dict_timestamp_multiple = {'timestamp': ['20260212','20260218']}
-shot_dict_timestamp_wrong_format = {'timestamp': ['202adhajs hdj0212','202asdasdhj60218']}
-shot_dict_timeframe_working = {'timeframe': ['20260212','20260218']}
-shot_data = template.get_shot_data(shot_dict_filename_multiple)
+# shot_dict_string_nonexists = 'nonexistent.asc'
+# shot_dict_filename_single = {'filename': 'test.asc'}
+# shot_dict_filename_multiple = {'filename': ['test.asc', 'test2.asc']}
+# shot_dict_timestamp_single_short = {'timestamp': ['20260212']}
+# shot_dict_timestamp_single_long = {'timestamp': ['20260212235959']}
+# shot_dict_timestamp_multiple = {'timestamp': ['20260212','20260218']}
+# shot_dict_timestamp_wrong_format = {'timestamp': ['202adhajs hdj0212','202asdasdhj60218']}
+# shot_dict_timeframe_working = {'timeframe': ['20260212','20260218']}
+shot_data = template.get_shot_data(shot_dict_string_exists)
 
 print("Shot data loaded successfully:", shot_data is not None)
-
-for key, value in shot_data.items():
-    if isinstance(value, dict):
-        print(f"{key}:")
-        for subkey, subvalue in value.items():
-            print(f"  {subkey}: {subvalue}")
-    else:
-        print(f"{key}: {value}")
+print("Shot data content:")
+print(shot_data)

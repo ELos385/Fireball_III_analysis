@@ -192,8 +192,8 @@ class Fireball_DAQ(DAQ):
             data = self.load_asc(Path(shot_filepath))
         elif file_type == 'scope':
             data = self.load_scope(shot_filepath)
-        # elif file_type == 'image':
-            # data = super().load_imdata(shot_filepath)
+        elif file_type == 'image':
+            data = super().load_imdata(shot_filepath)
         else:
             raise ValueError(f"Error: file_type {file_type} not supported in {self.__name} DAQ.")
 
@@ -229,7 +229,7 @@ class Fireball_DAQ(DAQ):
         diag_config = self.ex.diags[diag_name].config
         
         data_type = diag_config['data_type']
-        if not (data_type in self.supported_file_types):
+        if data_type not in self.supported_file_types:
             raise ValueError(f"Error: data_type '{data_type}' not supported in {self.__name} "
                              f"DAQ.")
         
@@ -238,12 +238,13 @@ class Fireball_DAQ(DAQ):
         
 
         # Intermediate array of all relevant (absolute) filepaths
-        shot_filepaths = []
+        shot_filepath = []
 
         # Check if shot_dict is dictionary
         if isinstance(shot_dict, dict):
             # Supported shot_dict keys: filename, timestamp, timeframe            
-            required = ['filename', 'timestamp', 'timeframe']
+            required = ['filename', 'timestamp']
+            # required = ['filename', 'timestamp', 'timeframe']
             if not any(key in shot_dict for key in required):
                 raise ValueError(f"Error: shot_dict {shot_dict} is not a valid input for "
                                  f"get_shot_data() in {self.__name} DAQ. Please provide "
@@ -251,57 +252,61 @@ class Fireball_DAQ(DAQ):
                                  f"'timeframe' or a raw filepath string.")
 
             if 'filename' in shot_dict:
-                in_files = shot_dict['filename']
-                if isinstance(in_files, str):
-                    in_files = [in_files]
+                in_file = shot_dict['filename']
+                # if isinstance(in_files, str):
+                #     in_files = [in_files]
+                if not isinstance(in_file, str):
+                    raise TypeError("Filenames must be provided as a string")
 
-                for file in in_files:
-                    shot_filepaths.append(os.path.join(diag_data_path,
-                                                       Path(file.lstrip("/\\"))))
+                # for file in in_files:
+                shot_filepath.append(os.path.join(diag_data_path,
+                                                       Path(in_file.lstrip("/\\"))))
             
             elif 'timestamp' in shot_dict:
-                in_timestamps = shot_dict['timestamp']
-                if isinstance(in_timestamps, str):
-                    in_timestamps = [in_timestamps]
+                in_timestamp = shot_dict['timestamp']
+                # if isinstance(in_timestamps, str):
+                    # in_timestamps = [in_timestamps]
+                if not isinstance(in_timestamp, str):
+                    raise TypeError("Timestamps must be provided as a string")
 
-                for timestamp in in_timestamps:
-                    if not isinstance(timestamp, str):
-                        raise TypeError("Timestamps must be strings")
+                # for timestamp in in_timestamps:
+                    # if not isinstance(timestamp, str):
+                        # raise TypeError("Timestamps must be strings")
 
-                    shot_filepaths.extend(self.timestamp_to_filename(timestamp,diag_data_path))
+                shot_filepath.extend(self.timestamp_to_filename(in_timestamp,diag_data_path))
 
                 # Remove duplicates, if there are multiple timestamps that correspond to the same file
-                shot_filepaths = list(set(shot_filepaths))
+                shot_filepath = list(set(shot_filepath))
             
-            elif 'timeframe' in shot_dict:
-                # Attempt to find files with timestamps in name that fall within
-                # provided timeframe
+            # elif 'timeframe' in shot_dict:
+            #     # Attempt to find files with timestamps in name that fall within
+            #     # provided timeframe
 
-                if not isinstance(shot_dict['timeframe'], (list, tuple)) or len(shot_dict['timeframe']) != 2:
-                    raise ValueError("'timeframe' must be a list/tuple of length 2")
+            #     if not isinstance(shot_dict['timeframe'], (list, tuple)) or len(shot_dict['timeframe']) != 2:
+            #         raise ValueError("'timeframe' must be a list/tuple of length 2")
 
-                start_time, end_time = shot_dict['timeframe']
-                if not isinstance(start_time, str) or not isinstance(end_time, str):
-                    raise TypeError("Timeframe values must be strings")
+            #     start_time, end_time = shot_dict['timeframe']
+            #     if not isinstance(start_time, str) or not isinstance(end_time, str):
+            #         raise TypeError("Timeframe values must be strings")
 
-                # Normalize timestamps to ensure they are in the same format
-                start_time = self.normalize_timestamp(start_time,'DOWN')
-                end_time = self.normalize_timestamp(end_time,'UP')
+            #     # Normalize timestamps to ensure they are in the same format
+            #     start_time = self.normalize_timestamp(start_time,'DOWN')
+            #     end_time = self.normalize_timestamp(end_time,'UP')
 
-                pattern = r"^\d{14}$"  # YYYYMMDDHHMMSS (14 digits)
+            #     pattern = r"^\d{14}$"  # YYYYMMDDHHMMSS (14 digits)
 
-                if not re.fullmatch(pattern, start_time):
-                    raise ValueError(f"Invalid start_time format: {start_time}")
+            #     if not re.fullmatch(pattern, start_time):
+            #         raise ValueError(f"Invalid start_time format: {start_time}")
 
-                if not re.fullmatch(pattern, end_time):
-                    raise ValueError(f"Invalid end_time format: {end_time}")
+            #     if not re.fullmatch(pattern, end_time):
+            #         raise ValueError(f"Invalid end_time format: {end_time}")
 
-                if start_time > end_time:
-                    raise ValueError("start_time must be <= end_time")
+            #     if start_time > end_time:
+            #         raise ValueError("start_time must be <= end_time")
 
-                print(f"Looking for files with timestamps between {start_time} and {end_time} in {diag_data_path}")
+            #     print(f"Looking for files with timestamps between {start_time} and {end_time} in {diag_data_path}")
 
-                shot_filepaths = self.timeframe_to_filenames((start_time, end_time), diag_data_path)
+            #     shot_filepaths = self.timeframe_to_filenames((start_time, end_time), diag_data_path)
 
 
         # A single (relative) filepath can be provided as a string
@@ -311,8 +316,7 @@ class Fireball_DAQ(DAQ):
 
             if base not in path.parents and path != base:
                 raise ValueError("Path escapes base directory")
-            shot_filepaths = [path]
-
+            shot_filepath = path
         else:
             raise ValueError(f"Error: shot_dict {shot_dict} is not a valid input for "
                              f"get_shot_data() in {self.__name} DAQ. Please provide either "
@@ -320,44 +324,42 @@ class Fireball_DAQ(DAQ):
                              f"or a raw filepath string.")
 
         # Convert to Path objects for easier handling
-        shot_filepaths = [Path(f) for f in shot_filepaths]        
+        shot_filepath = Path(shot_filepath)        
 
         # Filter files according to prefix and extension !!!
-        if 'data_stem' in diag_config:
-            stem = diag_config['data_stem']
-            shot_filepaths = [
-                f for f in shot_filepaths
-                if f.name.startswith(stem)
-            ]
-        if 'data_ext' in diag_config:
-            ext = diag_config['data_ext']
-            shot_filepaths = [
-                f for f in shot_filepaths
-                if f.suffix == ext
-            ]
+        # if 'data_stem' in diag_config:
+        #     stem = diag_config['data_stem']
+        #     shot_filepaths = [
+        #         f for f in shot_filepaths
+        #         if f.name.startswith(stem)
+        #     ]
+        # if 'data_ext' in diag_config:
+        #     ext = diag_config['data_ext']
+        #     shot_filepaths = [
+        #         f for f in shot_filepaths
+        #         if f.suffix == ext
+        #     ]
 
         # Initialize empty list to hold shot data and used file paths
-        shot_data = []
-        used_files = [] # to keep track of which files we actually used, in case some were missing or didn't match the criteria
+        # shot_data = []
+        # used_files = [] # to keep track of which files we actually used, in case some were missing or didn't match the criteria
         # Iterate through the filepaths and load the data
-        for shot_filepath in shot_filepaths:
-            if os.path.exists(shot_filepath):
-                print(data_type)
-                print(shot_filepath)
-                shot_data.append(self.load_data(shot_filepath, data_type))
-                used_files.append(shot_filepath)
-            else:
-                print(f"Error: Could not find file {shot_filepath} for {diag_name}")
+        # for shot_filepath in shot_filepaths:
+        if os.path.exists(shot_filepath):
+            print(data_type)
+            print(shot_filepath)
+            # shot_data.append(self.load_data(shot_filepath, data_type))
+            shot_data = self.load_data(shot_filepath, data_type)
+            # used_files.append(shot_filepath)
+        else:
+            print(f"Error: Could not find file {shot_filepath} for {diag_name}")
 
         if len(shot_data) == 0:
             print(f"Warning: No shot data loaded for diagnostic {diag_name} with "
                   f"shot_dict {shot_dict}! Does the file exist?")
             return None
         
-        return {
-            'filename': [p.name for p in used_files],
-            'data': shot_data,
-        }
+        return shot_data
 
 
     def timestamp_to_filename(self, timestamp, data_path):
