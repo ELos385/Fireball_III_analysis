@@ -5,32 +5,37 @@ import numpy as np
 from LAMP.DAQ import DAQ
 import logging
 
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(levelname)s: %(message)s"
 )
 
+logger = logging.getLogger(__name__)
+
 class Fireball_DAQ(DAQ):
     """Interface layer for Fireball experimental series
     """
-    __version = 0.1
-    __name = 'Fireball_DAQ'
-    __authors = ['Brendan Kettle', 'Eva Los', 'Maximilian Mudra', 'Margarida Pereira']
+    __version__ = 0.1
+    __name__ = 'Fireball_DAQ'
+    __authors__ = ['Brendan Kettle', 'Eva Los', 'Maximilian Mudra', 'Margarida Pereira']
 
     # These file_types can be used so far
     supported_file_types = ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif', 'asc', 'scope']
 
-
-
     def __init__(self, exp_obj):
         """Initiate parent base Diagnostic class to get all shared attributes and funcs"""
         super().__init__(exp_obj)
-        if 'DAQ' in self.ex.config.keys():
-            logging.info(f"DAQ is set to {self.ex.config['DAQ']} in ex.config")
-            logging.level = self.ex.config['DAQ']['logging']['level']
-        else:
-            logging.warning("DAQ is not in ex.config")
+        level_str = self.ex.config.get('logging', {}).get('level', 'INFO')
+
+        if not isinstance(level_str, str):
+            raise TypeError(f"Logging level must be a string, got {type(level_str)}")
+
+        level = getattr(logging, level_str.upper(), None)
+        if level is None:
+            raise ValueError(f"Invalid logging level in config: {level_str}")
+
+        logging.getLogger().setLevel(level)
+        logger.info(f"Logging level set to {level_str.upper()}")
         return
 
 
@@ -54,8 +59,8 @@ class Fireball_DAQ(DAQ):
             raise ValueError(f"Error: load_asc() function only supports .asc files, "
                             f"but {filepath} has extension {Path(filepath).suffix}")
         data = np.loadtxt(filepath, delimiter=',', dtype=float, max_rows=1024, usecols=range(1025))
-        print(data)
-        if type(data[0]) == np.void: # if problems loading datatypes, try to return an array
+        
+        if isinstance(data[0], np.void): # if problems loading datatypes, try to return an array
             data = np.array(list(map(list, data)))
         return data
 
@@ -80,6 +85,8 @@ class Fireball_DAQ(DAQ):
                     "dt": float    # time step
                 }
         """
+        logger.debug(f"Loading scope data from {filepath} in {self.__name__} DAQ.")
+
         if not Path(filepath).suffix == '.csv':
             raise ValueError(f"Error: load_scope() function only supports .csv files, "
                             f"but {filepath} has extension {Path(filepath).suffix}")
@@ -171,7 +178,8 @@ class Fireball_DAQ(DAQ):
     # Overwrite DAQ load_data to handle custom data types, e.g. asc files from spectroscopy
     def load_data(self, shot_filepath, file_type):
         """Loads data from a given filepath, with support for custom file types such as .asc files used for spectroscopy in the Fireball series.
-        For supported file types, it calls the parent DAQ load_data function, and for .asc files, it uses the custom load_asc function.
+        For supported file types, it calls the parent DAQ load_data function, and for .asc files, it uses the custom load_asc function. For scope
+        .csv files, it uses the custom load_scope function. For image files, it uses the parent DAQ load_imdata function.
 
         Parameters
         ----------
@@ -185,7 +193,7 @@ class Fireball_DAQ(DAQ):
             data : np.ndarray
                 The data loaded from the file, in a format determined by the file type.
         """
-        print(f"Loading data from {shot_filepath} with file_type {file_type} in {self.__name} DAQ.")
+        logger.debug(f"Loading data from {shot_filepath} with file_type {file_type} in {self.__name__} DAQ.")
         if file_type in ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif']:
              data = super().load_data(shot_filepath, file_type=file_type)
         elif file_type == 'asc':
@@ -224,8 +232,7 @@ class Fireball_DAQ(DAQ):
             'data' : list
                 A list of shot data for each shot corresponding to the shot_dict.
         """
-
-        
+        logger.debug(f"Getting shot data for diagnostic {diag_name} with shot_dict {shot_dict} in {self.__name__} DAQ.")
         diag_config = self.ex.diags[diag_name].config
         
         data_type = diag_config['data_type']
@@ -236,10 +243,6 @@ class Fireball_DAQ(DAQ):
         diag_data_path = os.path.join(Path(self.data_folder),
                                       Path(diag_config['data_folder'].lstrip("/\\")))
         
-
-        # Intermediate array of all relevant (absolute) filepaths
-        shot_filepath = []
-
         # Check if shot_dict is dictionary
         if isinstance(shot_dict, dict):
             # Supported shot_dict keys: filename, timestamp, timeframe            
@@ -252,6 +255,7 @@ class Fireball_DAQ(DAQ):
                                  f"'timeframe' or a raw filepath string.")
 
             if 'filename' in shot_dict:
+                logger.debug(f"shot_dict contains filename: {shot_dict['filename']}")
                 in_file = shot_dict['filename']
                 # if isinstance(in_files, str):
                 #     in_files = [in_files]
@@ -259,24 +263,18 @@ class Fireball_DAQ(DAQ):
                     raise TypeError("Filenames must be provided as a string")
 
                 # for file in in_files:
-                shot_filepath.append(os.path.join(diag_data_path,
-                                                       Path(in_file.lstrip("/\\"))))
+                shot_filepath = os.path.join(diag_data_path,
+                                                       Path(in_file.lstrip("/\\")))
+                logger.debug(f"Constructed filepath from filename: {shot_filepath}")
             
             elif 'timestamp' in shot_dict:
+                logger.debug(f"shot_dict contains timestamp: {shot_dict['timestamp']}")
                 in_timestamp = shot_dict['timestamp']
-                # if isinstance(in_timestamps, str):
-                    # in_timestamps = [in_timestamps]
                 if not isinstance(in_timestamp, str):
                     raise TypeError("Timestamps must be provided as a string")
 
-                # for timestamp in in_timestamps:
-                    # if not isinstance(timestamp, str):
-                        # raise TypeError("Timestamps must be strings")
-
-                shot_filepath.extend(self.timestamp_to_filename(in_timestamp,diag_data_path))
-
-                # Remove duplicates, if there are multiple timestamps that correspond to the same file
-                shot_filepath = list(set(shot_filepath))
+                shot_filepath = self.timestamp_to_filename(in_timestamp,diag_data_path)[0]
+                logger.debug(f"Constructed filepath from timestamp: {shot_filepath}")
             
             # elif 'timeframe' in shot_dict:
             #     # Attempt to find files with timestamps in name that fall within
@@ -311,8 +309,11 @@ class Fireball_DAQ(DAQ):
 
         # A single (relative) filepath can be provided as a string
         elif isinstance(shot_dict, str):
+            logger.debug(f"shot_dict is a string, treating as filepath: {shot_dict}")
+            logger.debug(f"diag_data_path: {diag_data_path}")
             base = Path(diag_data_path).resolve()
             path = (base / shot_dict).resolve()
+            logger.debug(f"Resolved path: {path}")
 
             if base not in path.parents and path != base:
                 raise ValueError("Path escapes base directory")
@@ -320,7 +321,7 @@ class Fireball_DAQ(DAQ):
         else:
             raise ValueError(f"Error: shot_dict {shot_dict} is not a valid input for "
                              f"get_shot_data() in {self.__name} DAQ. Please provide either "
-                             f"a dictionary with keys 'filenames', 'timestamp', 'timeframe', "
+                             f"a dictionary with keys 'filenames', 'timestamp', "
                              f"or a raw filepath string.")
 
         # Convert to Path objects for easier handling
@@ -340,25 +341,14 @@ class Fireball_DAQ(DAQ):
         #         if f.suffix == ext
         #     ]
 
-        # Initialize empty list to hold shot data and used file paths
-        # shot_data = []
-        # used_files = [] # to keep track of which files we actually used, in case some were missing or didn't match the criteria
-        # Iterate through the filepaths and load the data
-        # for shot_filepath in shot_filepaths:
         if os.path.exists(shot_filepath):
-            print(data_type)
-            print(shot_filepath)
-            # shot_data.append(self.load_data(shot_filepath, data_type))
             shot_data = self.load_data(shot_filepath, data_type)
-            # used_files.append(shot_filepath)
         else:
-            print(f"Error: Could not find file {shot_filepath} for {diag_name}")
+            raise ValueError(f"Error: No data could be loaded for {diag_name} with "
+                             f"shot_dict {shot_dict} in {self.__name__} DAQ. Please "
+                             f"check the provided shot_dict and ensure that the "
+                             f"corresponding files exist and are in the correct format.")
 
-        if len(shot_data) == 0:
-            print(f"Warning: No shot data loaded for diagnostic {diag_name} with "
-                  f"shot_dict {shot_dict}! Does the file exist?")
-            return None
-        
         return shot_data
 
 
@@ -372,7 +362,12 @@ class Fireball_DAQ(DAQ):
             if timestamp in file:
                 file_paths.append(os.path.join(data_path, file))
         if len(file_paths) == 0:
-            print(f"Warning: No files found with timestamp {timestamp} in {data_path}")
+            logger.warning(f"timestamp_to_filename: No files found with timestamp {timestamp} in {data_path}")
+
+        if len(file_paths) > 1:
+            logger.warning(f"timestamp_to_filename: Multiple files found with timestamp {timestamp} in {data_path}: {file_paths}")
+        elif len(file_paths) == 0:
+            raise ValueError(f"timestamp_to_filename: No files found with timestamp {timestamp} in {data_path}")
 
         return file_paths
     
@@ -417,8 +412,8 @@ class Fireball_DAQ(DAQ):
         file_paths.sort()
 
         if not file_paths:
-            print(
-                f"Warning: No files found with timestamps between "
+            logger.warning(
+                f"No files found with timestamps between "
                 f"{start_time} and {end_time} in {data_path}"
             )
 
@@ -464,7 +459,7 @@ class Fireball_DAQ(DAQ):
             required = ['data_folder','data_ext','data_type']
             for param in required:
                 if param not in diag_config:
-                    print(f"get_shot_data() error: {self.__name} DAQ requires a config parameter '{param}' for {diag_name}")
+                    logger.error(f"get_shot_data(): {self.__name} DAQ requires a config parameter '{param}' for {diag_name}")
                     return None
 
             # TO DO: OR can use GSN?
@@ -474,7 +469,7 @@ class Fireball_DAQ(DAQ):
             required = ['date','run','shotnum']
             for param in required:
                 if param not in shot_dict:
-                    print(f"get_shot_data() error: {self.__name} DAQ requires a shot_dict['{param}'] value")
+                    logger.error(f"get_shot_data(): {self.__name} DAQ requires a shot_dict['{param}'] value")
                     return None
             if 'burst' in shot_dict:
                 burst = shot_dict['burst']

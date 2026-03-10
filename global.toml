@@ -9,5 +9,5 @@ calibs_folder = './calibs/'
 user_diagnostics = 'diagnostics.' # this is as per python moadule loading. So '.' to represent folders
 user_DAQs = 'DAQs.'
 
-[DAQ.logging]
+[logging]
 level = "DEBUG" # DEBUG, INFO, WARNING, ERROR, CRITICAL
