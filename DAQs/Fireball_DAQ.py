@@ -202,12 +202,9 @@ class Fireball_DAQ(DAQ):
             data = self.load_scope(shot_filepath)
         elif file_type == 'image':
             data = super().load_imdata(shot_filepath)
-            
         elif file_type =="csv_image":
             img = np.genfromtxt(Path(shot_filepath), delimiter=',')
             data = img[1:, 1:]
-#         elif file_type == 'image':
-            # data = super().load_imdata(shot_filepath)
         else:
             raise ValueError(f"Error: file_type {file_type} not supported in {self.__name} DAQ.")
 
@@ -242,6 +239,9 @@ class Fireball_DAQ(DAQ):
         diag_config = self.ex.diags[diag_name].config
         
         data_type = diag_config['data_type']
+        data_stem = diag_config['data_stem']
+        data_ext = diag_config['data_ext']
+        
         if data_type not in self.supported_file_types:
             raise ValueError(f"Error: data_type '{data_type}' not supported in {self.__name} "
                              f"DAQ.")
@@ -275,11 +275,15 @@ class Fireball_DAQ(DAQ):
             
             elif 'timestamp' in shot_dict:
                 logger.debug(f"shot_dict contains timestamp: {shot_dict['timestamp']}")
-                in_timestamp = shot_dict['timestamp']
-                if not isinstance(in_timestamp, str):
-                    raise TypeError("Timestamps must be provided as a string")
+                if isinstance(shot_dict['timestamp'], list):
+                    in_timestamp = shot_dict['timestamp'][0]
+                elif isinstance(shot_dict['timestamp'], str):
+                    in_timestamp = shot_dict['timestamp']
+                else:
+                    raise TypeError("Timestamps must be provided as a string or list with 1 str")
 
-                shot_filepath = self.timestamp_to_filename(in_timestamp,diag_data_path)[0]
+                shot_filepath = self.timestamp_to_filename(in_timestamp,diag_data_path, data_stem, data_ext)[0]
+                print(shot_filepath)
                 logger.debug(f"Constructed filepath from timestamp: {shot_filepath}")
             
             # elif 'timeframe' in shot_dict:
@@ -347,7 +351,7 @@ class Fireball_DAQ(DAQ):
         #         if f.suffix == ext
         #     ]
 
-        if os.path.exists(shot_filepath):
+        if os.path.exists(shot_filepath) and os.path.isfile(shot_filepath):
             shot_data = self.load_data(shot_filepath, data_type)
         else:
             raise ValueError(f"Error: No data could be loaded for {diag_name} with "
@@ -437,19 +441,27 @@ class Fireball_DAQ(DAQ):
         #'timestamp'
         #'timeframe'
         if list(shot_dict.keys())[0]=="timestamp":
-            return int(str(int(shot_dict['timestamp'][0]))[0:10])# time_point
+            print("shit dict=%s"%shot_dict)
+            if isinstance(shot_dict["timestamp"], list):
+                return int(str(shot_dict['timestamp'][0])[0:10])# time_point
+            
+            elif isinstance(shot_dict["timestamp"], str):
+                return int(str(shot_dict['timestamp'])[0:10])# time_point
+                
         else:
             raise ValueError("Error reading data, please provide timestamp")
             
 
-    def timestamp_to_filename(self, timestamp, data_path):
+    def timestamp_to_filename(self, timestamp, data_path, data_stem='', data_ext=''):
         """Function to convert a timestamp to a list of corresponding filenames in the
         diagnostic's data_dir
         """
         file_paths = []
         
         cut_timestamp=str(timestamp)[0:10]
-        for file in os.listdir(data_path):
+        files = np.array([f for f in os.listdir(data_path) if f.endswith(data_ext) and f.startswith(data_stem)])
+        
+        for file in files:
             if cut_timestamp in file:
                 file_paths.append(os.path.join(data_path, file))
         if len(file_paths) == 0:
@@ -609,27 +621,3 @@ class Fireball_DAQ(DAQ):
 
         return shot_filepath
 
-
-    # TODO: Rewrite and test. This is from Gemini DAQ.
-    def build_time_point(self, shot_dict):
-        """Universal function to return a point in time for DAQ, for comparison, say in calibrations
-        """
-        # for Gemini, use date / run / shot
-        date_str = str(shot_dict['date'])
-        year = int(date_str[0:4])
-        month = int(date_str[4:6])
-        day = int(date_str[6:8])
-        if 'run' in shot_dict and shot_dict['run']:
-            run_str = shot_dict['run']
-            m = re.search(r'\d+$', run_str) # gets last numbers
-            run = int(m.group())
-        else:
-            run = 0
-        if 'shotnum' in shot_dict:
-            shotnum = shot_dict['shotnum']
-        else:
-            shotnum = 0
-
-        # weight the different components to make a unique increasing number?
-        time_point = year*1e10 + month*1e8 + day*1e6 + run*1000 + shotnum
-        return  time_point
