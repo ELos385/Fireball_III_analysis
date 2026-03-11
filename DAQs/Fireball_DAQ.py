@@ -20,7 +20,7 @@ class Fireball_DAQ(DAQ):
     __authors__ = ['Brendan Kettle', 'Eva Los', 'Maximilian Mudra', 'Margarida Pereira']
 
     # These file_types can be used so far
-    supported_file_types = ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif', 'asc', 'csv_image']
+    supported_file_types = ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif','scope','image', 'asc', 'csv_image']
 
     def __init__(self, exp_obj):
         """Initiate parent base Diagnostic class to get all shared attributes and funcs"""
@@ -212,35 +212,28 @@ class Fireball_DAQ(DAQ):
 
 
     def get_shot_data(self, diag_name, shot_dict):
-        """Provides shot_data depending on the data_type or data_ext of the diagnostic.
-        For images, uses load_csv_image() to load the data, and for other data types, 
-        uses load_data().
+        """Provides shot data for a given diagnostic and shot_dict, which can be in the form of a dictionary 
+        with keys 'filename' or 'timestamp', or a raw filepath string. The function constructs the appropriate
+        file path(s) based on the input and loads the data using the load_data function. It also includes error
+        handling for invalid inputs and missing files.
 
         Parameters
         ----------
             diag_name : str
-                The name of the diagnostic for which we want to get the shot data. This is
-                used to look up the appropriate data_type and data_ext in the diagnostic's
-                config.
+                The name of the diagnostic for which we want to get the shot data.
             shot_dict : dict or str
-                A dictionary containing information about the shots, which can be used to
-                construct the appropriate file paths. Alternatively, this can be a string
-                containing a raw file path to the data.
-        
+                A dictionary containing information about the shot, which can have keys 'filename' or 'timestamp',
+                or a raw filepath string.
         Returns
         -------
-            dict with keys 'filename' and 'data'
-            'filename' : list
-                A list of the filenames corresponding to the shot data that was loaded.
-            'data' : list
-                A list of shot data for each shot corresponding to the shot_dict.
+            shot_data : np.ndarray or dict
+                The data for the specified shot, loaded from the appropriate file(s) based on the input shot_dict.
         """
+
         logger.debug(f"Getting shot data for diagnostic {diag_name} with shot_dict {shot_dict} in Fireball DAQ.")
         diag_config = self.ex.diags[diag_name].config
         
         data_type = diag_config['data_type']
-        data_stem = diag_config['data_stem']
-        data_ext = diag_config['data_ext']
         
         if data_type not in self.supported_file_types:
             raise ValueError(f"Error: data_type '{data_type}' not supported in Fireball DAQ.")
@@ -262,12 +255,10 @@ class Fireball_DAQ(DAQ):
             if 'filename' in shot_dict:
                 logger.debug(f"shot_dict contains filename: {shot_dict['filename']}")
                 in_file = shot_dict['filename']
-                # if isinstance(in_files, str):
-                #     in_files = [in_files]
+
                 if not isinstance(in_file, str):
                     raise TypeError("Filenames must be provided as a string")
 
-                # for file in in_files:
                 shot_filepath = os.path.join(diag_data_path,
                                                        Path(in_file.lstrip("/\\")))
                 logger.debug(f"Constructed filepath from filename: {shot_filepath}")
@@ -284,8 +275,6 @@ class Fireball_DAQ(DAQ):
                 shot_filepath = self.timestamp_to_filename(in_timestamp,diag_data_path,diag_config['data_ext'])
                 logger.debug(f"Constructed filepath from timestamp: {shot_filepath}")
             
-
-
         # A single (relative) filepath can be provided as a string
         elif isinstance(shot_dict, str):
             logger.debug(f"shot_dict is a string, treating as filepath: {shot_dict}")
@@ -306,20 +295,6 @@ class Fireball_DAQ(DAQ):
         # Convert to Path objects for easier handling
         shot_filepath = Path(shot_filepath)        
 
-        # Filter files according to prefix and extension !!!
-        # if 'data_stem' in diag_config:
-        #     stem = diag_config['data_stem']
-        #     shot_filepaths = [
-        #         f for f in shot_filepaths
-        #         if f.name.startswith(stem)
-        #     ]
-        # if 'data_ext' in diag_config:
-        #     ext = diag_config['data_ext']
-        #     shot_filepaths = [
-        #         f for f in shot_filepaths
-        #         if f.suffix == ext
-        #     ]
-
         if os.path.exists(shot_filepath) and os.path.isfile(shot_filepath):
             shot_data = self.load_data(shot_filepath, data_type)
         else:
@@ -337,7 +312,7 @@ class Fireball_DAQ(DAQ):
         #'timestamp'
         #'timeframe'
         if list(shot_dict.keys())[0]=="timestamp":
-            print("shit dict=%s"%shot_dict)
+            print("shot dict=%s"%shot_dict)
             if isinstance(shot_dict["timestamp"], list):
                 return int(str(shot_dict['timestamp'][0])[0:10])# time_point
             
