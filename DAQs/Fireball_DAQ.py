@@ -272,7 +272,7 @@ class Fireball_DAQ(DAQ):
                 if not isinstance(in_timestamp, str):
                     raise TypeError("Timestamps must be provided as a string")
 
-                shot_filepath = self.timestamp_to_filename(in_timestamp,diag_data_path)[0]
+                shot_filepath = self.timestamp_to_filename(in_timestamp,diag_data_path,diag_config['data_ext'])
                 logger.debug(f"Constructed filepath from timestamp: {shot_filepath}")
             
 
@@ -397,24 +397,8 @@ class Fireball_DAQ(DAQ):
 
         return file_names
 
-    def timestamp_to_filename(self, timestamp, data_path):
-        """Function to convert a timestamp to a list of corresponding filenames in the
-        diagnostic's data_dir
-        """
+    def timestamp_to_filename(self, timestamp, data_path, extension=None):
         file_paths = []
-        
-        for file in os.listdir(data_path):
-            if timestamp in file:
-                file_paths.append(os.path.join(data_path, file))
-        if len(file_paths) == 0:
-            logger.warning(f"timestamp_to_filename: No files found with timestamp {timestamp} in {data_path}")
-
-        if len(file_paths) > 1:
-            logger.warning(f"timestamp_to_filename: Multiple files found with timestamp {timestamp} in {data_path}: {file_paths}")
-        elif len(file_paths) == 0:
-            raise ValueError(f"timestamp_to_filename: No files found with timestamp {timestamp} in {data_path}")
-
-        return file_paths
     
     def normalize_timestamp(self, timestamp, direction):
         """Converts timestamps of the form YYYYMMDD to YYYYMMDD000000 or YYYYMMDD235959,
