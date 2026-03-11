@@ -321,6 +321,63 @@ class Fireball_DAQ(DAQ):
 
         return shot_data
 
+
+
+    def timestamp_to_filename(self, timestamp, data_path, extension=None):
+        """
+        Convert a timestamp to a corresponding filename in the data directory.
+        Parameters
+        ----------
+            timestamp : str
+                The timestamp to search for in the format YYYYMMDDHHMMSS or YYYYMMDD
+            data_path : str
+                The path to the data directory
+            extension : str, optional
+                The file extension to filter by
+
+        Returns
+        -------
+            file_path : str
+                The full path to the file with the specified timestamp.
+        """
+        file_paths = []
+    
+        for file in os.listdir(data_path):
+    
+            # Ignore hidden/system files
+            if file.startswith('.'):
+                continue
+    
+            full_path = os.path.join(data_path, file)
+    
+            # Ignore directories
+            if not os.path.isfile(full_path):
+                continue
+    
+            # Timestamp filter: substring match like old version
+            if timestamp not in file:
+                continue
+    
+            # Extension filter
+            if extension is not None and not file.endswith(extension):
+                continue
+    
+            file_paths.append(full_path)
+    
+        if len(file_paths) == 0:
+            raise ValueError(
+                f"timestamp_to_filename: No files found with timestamp {timestamp} in {data_path}"
+            )
+    
+        if len(file_paths) > 1:
+            logger.warning(
+                f"timestamp_to_filename: Multiple files found with timestamp {timestamp}: {file_paths}"
+            )
+    
+        # Return the latest file (sorted by filename)
+        return sorted(file_paths)[-1]
+    
+
     def timeframe_to_filenames(self, diag_name, timestamp_begin, timestamp_end):        
         """Function to convert a timeframe to a list of corresponding filenames in the diagnostic's data_dir.
         The timeframe should be provided as a two string timestamps in the format 
@@ -397,9 +454,6 @@ class Fireball_DAQ(DAQ):
 
         return file_names
 
-    def timestamp_to_filename(self, timestamp, data_path, extension=None):
-        file_paths = []
-    
     def normalize_timestamp(self, timestamp, direction):
         """Converts timestamps of the form YYYYMMDD to YYYYMMDD000000 or YYYYMMDD235959,
         depending on direction, for timeframe searching. If timestamp is already in the
