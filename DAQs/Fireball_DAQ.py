@@ -20,7 +20,7 @@ class Fireball_DAQ(DAQ):
     __authors__ = ['Brendan Kettle', 'Eva Los', 'Maximilian Mudra', 'Margarida Pereira']
 
     # These file_types can be used so far
-    supported_file_types = ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif', 'asc', 'scope']
+    supported_file_types = ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif', 'asc', 'csv_image']
 
     def __init__(self, exp_obj):
         """Initiate parent base Diagnostic class to get all shared attributes and funcs"""
@@ -60,7 +60,7 @@ class Fireball_DAQ(DAQ):
                             f"but {filepath} has extension {Path(filepath).suffix}")
         data = np.loadtxt(filepath, delimiter=',', dtype=float, max_rows=1024, usecols=range(1025))
         
-        if isinstance(data[0], np.void): # if problems loading datatypes, try to return an array
+        if type(data[0]) == np.void: # if problems loading datatypes, try to return an array
             data = np.array(list(map(list, data)))
         return data
 
@@ -202,6 +202,12 @@ class Fireball_DAQ(DAQ):
             data = self.load_scope(shot_filepath)
         elif file_type == 'image':
             data = super().load_imdata(shot_filepath)
+            
+        elif file_type =="csv_image":
+            img = np.genfromtxt(Path(shot_filepath), delimiter=',')
+            data = img[1:, 1:]
+#         elif file_type == 'image':
+            # data = super().load_imdata(shot_filepath)
         else:
             raise ValueError(f"Error: file_type {file_type} not supported in {self.__name} DAQ.")
 
@@ -352,14 +358,99 @@ class Fireball_DAQ(DAQ):
         return shot_data
 
 
+    # def get_files(self, timestamp_slice)->dict[str, str]:
+    #     """Returns a list of file names in the provided directory, so long as the files contain the appropriate extension.
+        
+    #     Returns
+    #     -------
+    #         files_dict_sorted : dict[str, str]
+    #             Dictionary of files and timestamps, sorted in reverse-chronological order by timestamp. The KEY is the timestamp,
+    #             the VALUE is the filename.
+    #     """
+
+    #     diag_config = self.ex.diags[diag_name].config['setup']
+        
+    #     required = ['data_stem','data_ext','data_type']
+    #     for param in required:
+    #         if param not in diag_config:
+    #             print(f"get_shot_data() error: {self.__name} DAQ requires a config['setup'] parameter '{param}' for {diag_name}")
+    #             return None
+           
+        
+    #     # Select the appropriate file extension
+    #     extension = diag_config['data_ext']#self.input["EXTENSION_DICT"][self.input["DEVICE_NAME"]]
+
+    #     # Accumulate list of files with the correct extension in the directory provided.
+    #     #timestamp_slice = self.input["TIMESTAMP_SLICE"][self.input["DEVICE_NAME"]] # slice we need to take from the string to get the timestamp
+        
+    #     # Create dictionary of files and their timestamps. If we have no pre-determined means of doing this, fall back on using os.stat().st_mtime. The dictionaries are of form {Timestamp:Slice}
+    #     if timestamp_slice is not None:
+    #         files_dict = {f[timestamp_slice[0]:timestamp_slice[1]]:f for f in os.listdir(diag_config['paths']['data_folder']) if f.endswith(extension)\
+    #                 and not os.path.isdir(os.path.join(diag_config['paths']['data_folder'], f))}
+    #     else:
+    #         logger.info(f"Warning: no timestamp slice provided for {self.ex.diags[diag_name]}")
+    #         files_dict = {str(int(os.stat(os.path.join(diag_config['paths']['data_folder'], f)).st_mtime)):f for f in os.listdir(diag_config['paths']['data_folder']) if f.endswith(extension)\
+    #                 and not os.path.isdir(os.path.join(diag_config['paths']['data_folder'], f))}
+        
+
+    #     # Sort the files in reverse order to their timestamps (i.e. most recent files are earlier in the list)
+    #     files_dict_sorted = dict(sorted(files_dict.items(), key=lambda item : item[0], reverse=True))
+    #     # make sure that we are not asking for a larger number of shots than actually exist ...
+            
+    #     if len(self.input["EXP_SHOT_NOS"]) > len(files_dict_sorted.values()):
+    #         no_of_req_shots = len(self.input["EXP_SHOT_NOS"])
+    #         no_of_files = len(files_dict_sorted)
+    #         raise ValueError(f"Error: requested {no_of_req_shots} shots, but only {no_of_files} were found.")
+            
+
+    #     return files_dict_sorted
+        
+        
+    # def get_supplementary_files(self, files_dict_in):
+    #      #        "SUPPLEMENTARY_FOLDER_NAMES":SUPPLEMENTARY_FOLDER_NAMES,
+            
+    #         # Select the appropriate file extension
+    #     extension = self.input["EXTENSION_DICT"][self.input["DEVICE_NAME"]]
+
+    #     # Accumulate list of files with the correct extension in the directory provided.
+    #     timestamp_slice = self.input["TIMESTAMP_SLICE"][self.input["DEVICE_NAME"]] # slice we need to take from the string to get the timestamp
+        
+    #     # Create dictionary of files and their timestamps. If we have no pre-determined means of doing this, fall back on using os.stat().st_mtime. The dictionaries are of form {Timestamp:Slice}
+    #     for folder in self.input["SUPPLEMENTARY_FOLDER_NAMES"][self.input["DEVICE_NAME"]]:
+    #         path=os.path.join(self.input["PARENT_DIR"], folder)
+    #         for f in os.listdir(path):
+                
+    #             if f.endswith(extension) and not os.path.isdir(os.path.join(path, f)):
+    #                 if timestamp_slice is not None:
+    #                     files_dict_in[f[timestamp_slice[0]:timestamp_slice[1]]]=os.path.join(path, f)
+    #                 else:
+    #                     logger.info(f"Warning: no timestamp slice provided for {self.input['DEVICE_NAME']}")
+    #                     files_dict_in[str(int(os.stat(os.path.join(path, f)).st_mtime))]=os.path.join(path, f)
+                
+    #     files_dict_sorted = dict(sorted(files_dict_in.items(), key=lambda item : item[0], reverse=True))
+        
+    #     return files_dict_sorted
+    
+    def build_time_point(self, shot_dict):
+        """Universal function to return a point in time for DAQ, for comparison, say in calibrations
+        """
+        #'timestamp'
+        #'timeframe'
+        if list(shot_dict.keys())[0]=="timestamp":
+            return int(str(int(shot_dict['timestamp'][0]))[0:10])# time_point
+        else:
+            raise ValueError("Error reading data, please provide timestamp")
+            
+
     def timestamp_to_filename(self, timestamp, data_path):
         """Function to convert a timestamp to a list of corresponding filenames in the
         diagnostic's data_dir
         """
         file_paths = []
         
+        cut_timestamp=str(timestamp)[0:10]
         for file in os.listdir(data_path):
-            if timestamp in file:
+            if cut_timestamp in file:
                 file_paths.append(os.path.join(data_path, file))
         if len(file_paths) == 0:
             logger.warning(f"timestamp_to_filename: No files found with timestamp {timestamp} in {data_path}")
@@ -418,6 +509,44 @@ class Fireball_DAQ(DAQ):
             )
 
         return file_paths
+    
+    def timeframe_to_shotdict(self, diag_name, timeframe_dict):
+        """
+        Convert timeframe (start_time, end_time) to list of filepaths
+        whose filenames contain YYYYMMDDHHMMSS timestamps.
+        """
+        
+        diag_config = self.ex.diags[diag_name].config
+        data_path = os.path.join(Path(self.data_folder),
+                                      Path(diag_config['data_folder'].lstrip("/\\")))
+
+        start_time, end_time = timeframe_dict["timeframe"]
+        data_path = Path(data_path)
+
+        timestamp_pattern = re.compile(r"\d{14}")
+
+        shot_dict = []
+
+        for file in data_path.iterdir():
+            if not file.is_file():
+                continue
+
+            match = timestamp_pattern.search(file.name)
+            if not match:
+                continue
+
+            file_timestamp = match.group(0)
+
+            if start_time <= file_timestamp <= end_time:
+                shot_dict.append({"timestamp":[file_timestamp]})
+
+        if not shot_dict:
+            print(
+                f"Warning: No files found with timestamps between "
+                f"{start_time} and {end_time} in {data_path}"
+            )
+
+        return shot_dict
 
 
     def normalize_timestamp(self, timestamp, direction):
