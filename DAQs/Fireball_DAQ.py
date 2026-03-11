@@ -203,7 +203,7 @@ class Fireball_DAQ(DAQ):
         elif file_type == 'image':
             data = super().load_imdata(shot_filepath)
         else:
-            raise ValueError(f"Error: file_type {file_type} not supported in {self.__name} DAQ.")
+            raise ValueError(f"Error: file_type {file_type} not supported in Fireball DAQ.")
 
         return data
 
@@ -232,13 +232,12 @@ class Fireball_DAQ(DAQ):
             'data' : list
                 A list of shot data for each shot corresponding to the shot_dict.
         """
-        logger.debug(f"Getting shot data for diagnostic {diag_name} with shot_dict {shot_dict} in {self.__name__} DAQ.")
+        logger.debug(f"Getting shot data for diagnostic {diag_name} with shot_dict {shot_dict} in Fireball DAQ.")
         diag_config = self.ex.diags[diag_name].config
         
         data_type = diag_config['data_type']
         if data_type not in self.supported_file_types:
-            raise ValueError(f"Error: data_type '{data_type}' not supported in {self.__name} "
-                             f"DAQ.")
+            raise ValueError(f"Error: data_type '{data_type}' not supported in Fireball DAQ.")
         
         diag_data_path = os.path.join(Path(self.data_folder),
                                       Path(diag_config['data_folder'].lstrip("/\\")))
@@ -320,7 +319,7 @@ class Fireball_DAQ(DAQ):
             shot_filepath = path
         else:
             raise ValueError(f"Error: shot_dict {shot_dict} is not a valid input for "
-                             f"get_shot_data() in {self.__name} DAQ. Please provide either "
+                             f"get_shot_data() in Fireball DAQ. Please provide either "
                              f"a dictionary with keys 'filenames', 'timestamp', "
                              f"or a raw filepath string.")
 
@@ -345,7 +344,7 @@ class Fireball_DAQ(DAQ):
             shot_data = self.load_data(shot_filepath, data_type)
         else:
             raise ValueError(f"Error: No data could be loaded for {diag_name} with "
-                             f"shot_dict {shot_dict} in {self.__name__} DAQ. Please "
+                             f"shot_dict {shot_dict} in Fireball DAQ. Please "
                              f"check the provided shot_dict and ensure that the "
                              f"corresponding files exist and are in the correct format.")
 
@@ -459,7 +458,7 @@ class Fireball_DAQ(DAQ):
             required = ['data_folder','data_ext','data_type']
             for param in required:
                 if param not in diag_config:
-                    logger.error(f"get_shot_data(): {self.__name} DAQ requires a config parameter '{param}' for {diag_name}")
+                    logger.error(f"get_shot_data(): Fireball DAQ requires a config parameter '{param}' for {diag_name}")
                     return None
 
             # TO DO: OR can use GSN?
@@ -469,7 +468,7 @@ class Fireball_DAQ(DAQ):
             required = ['date','run','shotnum']
             for param in required:
                 if param not in shot_dict:
-                    logger.error(f"get_shot_data(): {self.__name} DAQ requires a shot_dict['{param}'] value")
+                    logger.error(f"get_shot_data(): Fireball DAQ requires a shot_dict['{param}'] value")
                     return None
             if 'burst' in shot_dict:
                 burst = shot_dict['burst']
