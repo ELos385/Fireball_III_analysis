@@ -275,35 +275,6 @@ class Fireball_DAQ(DAQ):
                 shot_filepath = self.timestamp_to_filename(in_timestamp,diag_data_path)[0]
                 logger.debug(f"Constructed filepath from timestamp: {shot_filepath}")
             
-            # elif 'timeframe' in shot_dict:
-            #     # Attempt to find files with timestamps in name that fall within
-            #     # provided timeframe
-
-            #     if not isinstance(shot_dict['timeframe'], (list, tuple)) or len(shot_dict['timeframe']) != 2:
-            #         raise ValueError("'timeframe' must be a list/tuple of length 2")
-
-            #     start_time, end_time = shot_dict['timeframe']
-            #     if not isinstance(start_time, str) or not isinstance(end_time, str):
-            #         raise TypeError("Timeframe values must be strings")
-
-            #     # Normalize timestamps to ensure they are in the same format
-            #     start_time = self.normalize_timestamp(start_time,'DOWN')
-            #     end_time = self.normalize_timestamp(end_time,'UP')
-
-            #     pattern = r"^\d{14}$"  # YYYYMMDDHHMMSS (14 digits)
-
-            #     if not re.fullmatch(pattern, start_time):
-            #         raise ValueError(f"Invalid start_time format: {start_time}")
-
-            #     if not re.fullmatch(pattern, end_time):
-            #         raise ValueError(f"Invalid end_time format: {end_time}")
-
-            #     if start_time > end_time:
-            #         raise ValueError("start_time must be <= end_time")
-
-            #     print(f"Looking for files with timestamps between {start_time} and {end_time} in {diag_data_path}")
-
-            #     shot_filepaths = self.timeframe_to_filenames((start_time, end_time), diag_data_path)
 
 
         # A single (relative) filepath can be provided as a string
@@ -350,6 +321,81 @@ class Fireball_DAQ(DAQ):
 
         return shot_data
 
+    def timeframe_to_filenames(self, diag_name, timestamp_begin, timestamp_end):        
+        """Function to convert a timeframe to a list of corresponding filenames in the diagnostic's data_dir.
+        The timeframe should be provided as a two string timestamps in the format 
+        YYYYMMDDHHMMSS or YYYYMMDD. The function will search the diagnostic's data directory for files whose
+        names contain timestamps between the two values and return a list of file paths for those files whose
+        timestamps fall within the specified timeframe.
+
+        Parameters
+        ----------
+            diag_name : str
+                The name of the diagnostic for which we want to get the filenames corresponding to the specified timeframe
+            time_stamp_begin : str
+                The start timestamp of the timeframe, in the format YYYYMMDDHHMMSS or YYYYMMDD
+            time_stamp_end : str
+                The end timestamp of the timeframe, in the format YYYYMMDDHHMMSS or YYYYMMDD
+
+        Returns
+        -------
+            file_names : list
+                A list of file names that have timestamps in their filenames falling within the specified timeframe.
+        """
+        logger.debug(f"Getting filenames for diagnostic {diag_name} with timeframe ({timestamp_begin}, {timestamp_end}) in Fireball DAQ.")
+        diag_config = self.ex.diags[diag_name].config
+        diag_data_path = Path(self.data_folder) / diag_config["data_folder"].lstrip("/\\")
+
+        file_names =  []
+
+        if not isinstance(timestamp_begin, str) or not isinstance(timestamp_end, str):
+            raise TypeError("Timeframe values must be strings")
+
+        # Normalize timestamps to ensure they are in the same format
+        start_time = self.normalize_timestamp(timestamp_begin,'DOWN')
+        end_time = self.normalize_timestamp(timestamp_end,'UP')
+
+        pattern = r"^\d{14}$"  # YYYYMMDDHHMMSS (14 digits)
+
+        if not re.fullmatch(pattern, start_time):
+            raise ValueError(f"Invalid start_time format: {start_time}")
+
+        if not re.fullmatch(pattern, end_time):
+            raise ValueError(f"Invalid end_time format: {end_time}")
+
+        if start_time > end_time:
+            raise ValueError("start_time must be <= end_time")
+
+        logger.debug(f"Looking for files with timestamps between {start_time} and {end_time} in {diag_data_path}")
+        
+        timestamp_pattern = re.compile(r"\d{14}")
+
+        for file in diag_data_path.iterdir():
+            if not file.is_file():
+                continue
+
+            match = timestamp_pattern.search(file.name)
+            if not match:
+                continue
+
+            file_timestamp = match.group(0)
+
+            if start_time <= file_timestamp <= end_time:
+                file_names.append(file.name)
+
+        file_names.sort()
+        
+
+        if not file_names:
+            logger.warning(
+                f"No files found with timestamps between "
+                f"{start_time} and {end_time} in {diag_data_path}"
+            )
+        logger.debug(f"Found {len(file_names)} files with timestamps between "
+                     f"{start_time} and {end_time} in {diag_data_path}: {file_names}")
+
+
+        return file_names
 
     def timestamp_to_filename(self, timestamp, data_path):
         """Function to convert a timestamp to a list of corresponding filenames in the
@@ -370,55 +416,6 @@ class Fireball_DAQ(DAQ):
 
         return file_paths
     
-
-    def timeframe_to_filenames(self, timeframe, data_path):
-        """
-        Convert timeframe (start_time, end_time) to list of filepaths
-        whose filenames contain YYYYMMDDHHMMSS timestamps.
-        Parameters
-        ----------
-            timeframe : tuple or list
-                A tuple containing the start and end timestamps in the format YYYYMMDDHHMMSS.
-            data_path : str
-                The path to the directory where the files are located.
-        Returns
-        -------
-            file_paths : list
-                A list of file paths that have timestamps in their filenames falling within the
-                specified timeframe.
-        """
-
-        start_time, end_time = timeframe
-        data_path = Path(data_path)
-
-        timestamp_pattern = re.compile(r"\d{14}")
-
-        file_paths = []
-
-        for file in data_path.iterdir():
-            if not file.is_file():
-                continue
-
-            match = timestamp_pattern.search(file.name)
-            if not match:
-                continue
-
-            file_timestamp = match.group(0)
-
-            if start_time <= file_timestamp <= end_time:
-                file_paths.append(file)
-
-        file_paths.sort()
-
-        if not file_paths:
-            logger.warning(
-                f"No files found with timestamps between "
-                f"{start_time} and {end_time} in {data_path}"
-            )
-
-        return file_paths
-
-
     def normalize_timestamp(self, timestamp, direction):
         """Converts timestamps of the form YYYYMMDD to YYYYMMDD000000 or YYYYMMDD235959,
         depending on direction, for timeframe searching. If timestamp is already in the
@@ -443,63 +440,3 @@ class Fireball_DAQ(DAQ):
             elif direction == 'DOWN':
                 return timestamp + "000000"   # start of day
         return timestamp
-
-
-    # TODO: Rewrite and test. This is from Gemini DAQ.
-    def get_filepath(self, diag_name, shot_dict):
-        """Required function to return shot filepath, given the diagnostic name and a shot dict (or filename str)"""
-
-        diag_config = self.ex.diags[diag_name].config
-
-        # Check if shot_dict is not dictionary; could just be filepath
-        if isinstance(shot_dict, str):
-            shot_filepath = Path(f'{self.data_folder}/{shot_dict}') # should this be diagnostic folder?
-        else:
-            required = ['data_folder','data_ext','data_type']
-            for param in required:
-                if param not in diag_config:
-                    logger.error(f"get_shot_data(): Fireball DAQ requires a config parameter '{param}' for {diag_name}")
-                    return None
-
-            # TO DO: OR can use GSN?
-            if 'GSN' in shot_dict:
-                shot_dict = self._shot_dict_from_GSN(shot_dict['GSN'])
-
-            required = ['date','run','shotnum']
-            for param in required:
-                if param not in shot_dict:
-                    logger.error(f"get_shot_data(): Fireball DAQ requires a shot_dict['{param}'] value")
-                    return None
-            if 'burst' in shot_dict:
-                burst = shot_dict['burst']
-            else:
-                burst = None
-
-            shot_filepath = self._build_shot_filepath(diag_config['data_folder'], shot_dict['date'], shot_dict['run'], shot_dict['shotnum'], diag_config['data_ext'], burst=burst)
-
-        return shot_filepath
-
-
-    # TODO: Rewrite and test. This is from Gemini DAQ.
-    def build_time_point(self, shot_dict):
-        """Universal function to return a point in time for DAQ, for comparison, say in calibrations
-        """
-        # for Gemini, use date / run / shot
-        date_str = str(shot_dict['date'])
-        year = int(date_str[0:4])
-        month = int(date_str[4:6])
-        day = int(date_str[6:8])
-        if 'run' in shot_dict and shot_dict['run']:
-            run_str = shot_dict['run']
-            m = re.search(r'\d+$', run_str) # gets last numbers
-            run = int(m.group())
-        else:
-            run = 0
-        if 'shotnum' in shot_dict:
-            shotnum = shot_dict['shotnum']
-        else:
-            shotnum = 0
-
-        # weight the different components to make a unique increasing number?
-        time_point = year*1e10 + month*1e8 + day*1e6 + run*1000 + shotnum
-        return  time_point
