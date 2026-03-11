@@ -10,4 +10,4 @@ user_diagnostics = 'diagnostics.' # this is as per python moadule loading. So '.
 user_DAQs = 'DAQs.'
 
 [logging]
-level = "DEBUG" # DEBUG, INFO, WARNING, ERROR, CRITICAL
+level = "INFO" # DEBUG, INFO, WARNING, ERROR, CRITICAL

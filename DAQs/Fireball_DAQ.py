@@ -85,7 +85,7 @@ class Fireball_DAQ(DAQ):
                     "dt": float    # time step
                 }
         """
-        logger.debug(f"Loading scope data from {filepath} in {self.__name__} DAQ.")
+        logger.debug(f"Loading scope data from {filepath} in Fireball DAQ.")
 
         if not Path(filepath).suffix == '.csv':
             raise ValueError(f"Error: load_scope() function only supports .csv files, "
@@ -258,9 +258,12 @@ class Fireball_DAQ(DAQ):
 
                 if not isinstance(in_file, str):
                     raise TypeError("Filenames must be provided as a string")
-
-                shot_filepath = os.path.join(diag_data_path,
-                                                       Path(in_file.lstrip("/\\")))
+                
+                base = Path(diag_data_path).resolve()
+                path = (base / in_file).resolve()
+                if base not in path.parents and path != base:
+                    raise ValueError("Path escapes base directory")
+                shot_filepath = path
                 logger.debug(f"Constructed filepath from filename: {shot_filepath}")
             
             elif 'timestamp' in shot_dict:

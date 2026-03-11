@@ -2,7 +2,6 @@ import sys
 from pathlib import Path
 import logging
 from LAMP import Experiment
-from numpy import diag
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,21 +32,18 @@ for key, value in template.config.items():
     else:
         logger.debug(f"{key}: {value}")
 
+# Test get_shot_data with filename input
+shot_data = ex.DAQ.get_shot_data('SCOPE1', {'filename': 'scope1__ALL_20250602182440870.csv'})
+logger.info(f"Shot data keys: {shot_data.keys()}")
+logger.info(f"Shot data: {shot_data}")
 
+# Test get_shot_data with filename input
+shot_data = ex.DAQ.get_shot_data('SCOPE1', {'timestamp': '20250602182450'})
+logger.info(f"Shot data keys: {shot_data.keys()}")
+logger.info(f"Shot data: {shot_data}")
 
-# shot_dict_string_exists = 'test.asc'
-# shot_dict_string_nonexists = 'nonexistent.asc'
-# shot_dict_filename_single = {'filename': 'test.asc'}
-# shot_dict_filename_multiple = {'filename': ['test.asc', 'test2.asc']}
-# shot_dict_timestamp_single_short = {'timestamp': '20260212'}
-# shot_dict_timestamp_single_long = {'timestamp': ['20260212235959']}
-# shot_dict_timestamp_multiple = {'timestamp': ['20260212','20260218']}
-# shot_dict_timestamp_wrong_format = {'timestamp': ['202adhajs hdj0212','202asdasdhj60218']}
-# shot_dict_timeframe_working = {'timeframe': ['20260212','20260218']}
-# shot_data = template.get_shot_data(shot_dict_timestamp_single_short)
+# Test get_shot_data with string input
+shot_data = ex.DAQ.get_shot_data('SCOPE1', 'scope1__ALL_20250602182440870.csv')
+logger.info(f"Shot data keys: {shot_data.keys()}")
+logger.info(f"Shot data: {shot_data}")
 
-file_names = ex.DAQ.timeframe_to_filenames('SCOPE1', '20250101', '20251231')
-
-
-print("Filenames:")
-print(file_names)
