@@ -250,7 +250,7 @@ class Fireball_DAQ(DAQ):
             # required = ['filename', 'timestamp', 'timeframe']
             if not any(key in shot_dict for key in required):
                 raise ValueError(f"Error: shot_dict {shot_dict} is not a valid input for "
-                                 f"get_shot_data() in {self.__name} DAQ. Please provide "
+                                 f"get_shot_data() in Fireball DAQ. Please provide "
                                  f"either a dictionary with keys 'filenames', 'timestamp',"
                                  f"'timeframe' or a raw filepath string.")
 
