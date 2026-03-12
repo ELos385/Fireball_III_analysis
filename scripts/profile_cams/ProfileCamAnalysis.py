@@ -62,6 +62,7 @@ class ProfileCamAnalysis:
             for shot in shots_list:
 
                 shot_dict = {"shot" : [shot]}
+                # shot_dict = {"timestamp" : [str(shot)[:10]]}
                 img, x,y = self.diagnostic.get_proc_shot(shot_dict, self.calib_id)
 
 

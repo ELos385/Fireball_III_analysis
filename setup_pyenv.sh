@@ -10,7 +10,7 @@
 # -----------------------------
 # Configuration - CHANGE THESE
 # -----------------------------
-ENV_NAME="FBIII_online_analysis_env"                 # Name of your custom environment
+ENV_NAME="FBIII"                 # Name of your custom environment
 CERN_USER="blloyd"                 # Your CERN username
 PYTHON_VERSION="3.12"            # Python version for environment
 MAMBA_ROOT_PREFIX="${HOME}/mamba"

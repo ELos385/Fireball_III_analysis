@@ -34,6 +34,44 @@ class Fireball_DAQ(DAQ):
         return
 
 
+    def load_csv_image(self, path:str)->tuple[np.ndarray, list, list]:
+        """Loads image object from .csv given by DigiCam. Due to the way that the DigiCams store image data,
+        the first column and first row have to be removed, as these contain coordinate information about the
+        pixels.
+
+        Parameters
+        ----------
+            path : str
+                The path to the raw .csv file where the DigiCam image is stored.
+
+        Returns
+        -------
+            img : np.ndarray
+                The image as a numpy array after being loaded from the .csv, and after having its first column and
+                first row trimmed.
+            x_pixels : np.ndarray
+                The trimmed top row of the image data, which encodes the x coordinates in mm.
+            y_pixels : np.ndarray
+                The trimmed first column of the image data, which encodes the y coordinates in mm.
+        """
+
+
+        print("Fireball_DAQ load_csv_image called")
+        
+        #Remove top row and first column, as this is coordinate data
+        try:
+            img = np.genfromtxt(path, delimiter=',')
+            x_coords = img[0, 1:]
+            y_coords = img[1:, 0]
+            img = img[1:, 1:]
+
+            return {"IMG":img, "X":x_coords, "Y":y_coords}
+
+        except Exception as e:
+            ValueError(f"Error: DIGICAM image generation from {path} failed. {e}")
+
+
+    
     def load_asc(self, filepath):
         """Loads data from .asc files, which are used for spectroscopy in the Fireball
         series. These files are essentially .csv files, but without header row and
@@ -186,8 +224,10 @@ class Fireball_DAQ(DAQ):
                 The data loaded from the file, in a format determined by the file type.
         """
         print(f"Loading data from {shot_filepath} with file_type {file_type} in {self.__name} DAQ.")
-        if file_type in ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif']:
+        if file_type in ['pickle', 'json', 'numpy', 'npy', 'toml', 'tif']:
              data = super().load_data(shot_filepath, file_type=file_type)
+        elif file_type == "csv":
+            data = self.load_csv_image(shot_filepath)
         elif file_type == 'asc':
             data = self.load_asc(Path(shot_filepath))
         elif file_type == 'scope':
@@ -197,6 +237,7 @@ class Fireball_DAQ(DAQ):
         else:
             raise ValueError(f"Error: file_type {file_type} not supported in {self.__name} DAQ.")
 
+        print(data)
         return data
 
 
