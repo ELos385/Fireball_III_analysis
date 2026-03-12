@@ -19,7 +19,7 @@ class ESpec_(Diagnostic):
     __version = 0.1
     __authors = ['Brendan Kettle']
     __requirements = 'cv2'
-    data_type = 'csv'
+    data_type = 'csv_image'
 
     # my (BK) thinking is that it is better to keep track of all the different units for the x/y axis
     # also, sticking to the same units (mm/MeV/mrad) helps make it easier to convert from different calibrations and simplify plotting
@@ -189,15 +189,74 @@ class ESpec_(Diagnostic):
     
     def get_spectra(self, timeframe, calib_id=None, roi_MeV=None, roi_mrad=None,  debug=False):
 
-        shot_dicts = self.DAQ.get_shot_dicts(self.config['name'],timeframe)
+        shot_dicts = self.DAQ.timeframe_to_shotdict(self.config['name'], timeframe)
         specs = []
         MeVs = []
         for shot_dict in shot_dicts:
-            spec, MeV = self.get_spectrum(shot_dict, calib_id=None, roi_MeV=None, roi_mrad=None,  debug=False)
+            spec, MeV = self.get_spectrum(shot_dict)
             specs.append(spec)
             MeVs.append(MeV)
-        return specs, MeVs
+        return np.array(specs), np.array(MeVs)
     
+    def get_divs(self, timeframe, calib_id=None, roi_MeV=None, roi_mrad=None,  debug=False):
+        
+        shot_dicts = self.DAQ.timeframe_to_shotdict(self.config['name'], timeframe)
+        
+        sum_lineouts = []
+        mrads = []
+        for shot_dict in shot_dicts:
+            sum_lineout, mrad = self.get_div(shot_dict)
+            sum_lineouts.append(sum_lineout)
+            mrads.append(mrad)
+        return np.array(sum_lineouts), np.array(mrads)
+    
+    def get_mean_and_error(self, timeframe, key="energy"):
+        # or key==divergence
+        if key.lower()=="energy":
+            function = self.get_spectra
+        elif key.lower()=="divergence":
+            function = self.get_divs
+
+        
+        y, x = function(timeframe)
+        y_mean = np.mean(y, axis=0)
+        y_std = np.std(y, axis=0)
+        y_stderr = y_std/np.sqrt(y.shape[0])
+        return {"x":x[0], "y_mean":y_mean, "y_std":y_std, "y_stderr":y_stderr}
+    
+    def plot_mean_and_error(self, timeframe, key="energy", color='r'):
+        # or key==divergence
+        
+        summary_dict=self.get_mean_and_error(timeframe, key)
+        
+        fig, ax = plt.subplots(1, 1)
+        ax.plot(summary_dict["x"], summary_dict["y_mean"], color=color)
+        ax.fill_between(summary_dict["x"], summary_dict["y_mean"]-summary_dict["y_stderr"], summary_dict["y_mean"]+summary_dict["y_stderr"], alpha=0.3, color=color)
+        ax.set_title(timeframe)
+        
+        if key.lower()=="energy":
+            if 'charge' in self.calib_dict:
+                units = 'fC/MeV'
+            else:
+                units = 'Counts/MeV'
+
+            ax.set_xlabel('MeV') 
+            ax.set_ylabel(units) 
+                
+        elif key.lower()=="divergence":
+            if 'charge' in self.calib_dict:
+                units = 'fC/mrad'
+            else:
+                units = 'Counts/mrad'
+
+            ax.set_xlabel('mrad') 
+            ax.set_ylabel(units) 
+        
+        plt.tight_layout()
+        plt.show(block=False)
+        
+        return fig, ax
+            
     def get_spectrum_metrics(self, shot_dict, calib_id=None, roi_MeV=None, roi_mrad=None, percentile=95, debug=False):
         """"""
         spec, MeV = self.get_spectrum(shot_dict, calib_id=calib_id, roi_MeV=roi_MeV, roi_mrad=roi_mrad,  debug=debug)
@@ -409,6 +468,7 @@ class ESpec_(Diagnostic):
             disp_spat=disp_dict["x_mm"]
             disp_spec=disp_dict["MeV"]
             disp_curve=np.stack((disp_spec,disp_spat),axis=0)
+            
             disp_dict['filename']=None
             
         if "angle to normal (rad)" in disp_dict:
@@ -438,7 +498,6 @@ class ESpec_(Diagnostic):
 
         disp_fit = interp1d(self.to_mm(disp_spat,spat_units), self.to_MeV(disp_spec, spec_units),bounds_error=False, fill_value="extrapolate")
        
-        print(disp_spat.shape, theta_.shape)
         disp_angle=interp1d(self.to_mm(disp_spat,spat_units), theta_, bounds_error=False, fill_value="extrapolate")
         
         
@@ -446,7 +505,6 @@ class ESpec_(Diagnostic):
 #         plt.plot(self.x_mm, disp_fit(self.x_mm), label='interp')
 #         plt.legend()
 #         plt.show()
-        print(axis.lower())
         if axis.lower() == 'x':
             MeV = disp_fit(self.x_mm)
             theta=disp_angle(self.x_mm)
@@ -469,7 +527,6 @@ class ESpec_(Diagnostic):
         if 'dispersion' not in self.calib_dict:
             self.calib_dict['dispersion'] = {}
         
-        print("theta shape=%s"%[theta.shape])
         # save details to calib dictionary
         dict_update(self.calib_dict['dispersion'],{
             "calib_curve": disp_curve,
@@ -478,7 +535,9 @@ class ESpec_(Diagnostic):
             "calib_spectral_units": spec_units,
             "angle (rad)":theta,
             "mm": mm,
+            "x_mm": mm,
             "MeV": MeV,
+            "angle to normal (rad)":theta,
             "axis": axis
         })
             
@@ -502,7 +561,6 @@ class ESpec_(Diagnostic):
         img_data = img_data / dMeV_matrix
         
         if "angle to normal (rad)" in disp_dict:
-            print("correct angle")
             img_data=img_data/np.cos(disp_dict["angle (rad)"])
 
         if '/MeV' not in self.img_units:

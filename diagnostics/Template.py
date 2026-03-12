@@ -1,22 +1,9 @@
-
-import os
-import numpy as np
-import matplotlib.pyplot as plt
-from pathlib import Path
-from scipy import ndimage
-from skimage.morphology import reconstruction
-import re
-from LAMP.utils.io import *
-from LAMP.utils.general import dict_update
-from LAMP.utils.image_proc import ImageProc
-from LAMP.utils.plotting import plot_montage
-from LAMP.utils.plotting import get_colormap
 from LAMP.diagnostic import Diagnostic
 
-
 class Template(Diagnostic):
-    """Base class for Diagnostics. 
-    Currently this mostly handles loading/saving calibrations.
+    """Minimal template for a user diagnostic. This can be used as a starting point for creating
+    new diagnostics. It inherits from the base Diagnostic class, which provides shared attributes
+    and functions for all diagnostics.
     """
 
     def __init__(self, exp_obj, config_filepath):
