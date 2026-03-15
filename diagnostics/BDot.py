@@ -20,31 +20,65 @@ class BDot(Diagnostic):
     # ------------------------------------------------------------------
 
     def get_scope_data(self, shot_dict):
-
+        """
+        Get scope data from the DAQ.
+        Supports:
+          - 'filename'
+          - 'timestamp'
+          - 'timeframe' (list of [start, end])
+        Uses caching to avoid reloading the same data.
+        """
+    
+        # Create cache key
         cache_key = tuple(
             (k, tuple(v) if isinstance(v, list) else v)
             for k, v in sorted(shot_dict.items())
         )
-
         if cache_key in self._scope_cache:
             print(f"[Cache] Using cached data for {self.config['name']}")
             return self._scope_cache[cache_key]
-
-        shot_data = self.DAQ.get_shot_data(
-            self.config['name'],
-            shot_dict
-        )
-
-        if shot_data is None:
-            print(f"[INFO] No data found for {self.config['name']} in shot {shot_dict}")
-            return None
-
-        if isinstance(shot_data, dict) and 'data' in shot_data:
-            shot_data = shot_data['data']
-            
-
-        self._scope_cache[cache_key] = shot_data
-        return shot_data
+    
+        # -------------------------------
+        # Handle timeframe separately
+        # -------------------------------
+        if 'timeframe' in shot_dict:
+            # Convert timeframe to a list of shot_dicts using DAQ
+            shot_dict_list = self.DAQ.timeframe_to_shotdict(self.config['name'], shot_dict)
+    
+            if not shot_dict_list:
+                print(f"[INFO] No files found in timeframe {shot_dict['timeframe']} for {self.config['name']}")
+                return None
+    
+            # Load all files in that timeframe
+            shot_data_list = []
+            for sd in shot_dict_list:
+                data = self.DAQ.get_shot_data(self.config['name'], sd)
+                # unwrap if returned dict contains 'data'
+                if isinstance(data, dict) and 'data' in data:
+                    data = data['data']
+                shot_data_list.append(data)
+    
+            self._scope_cache[cache_key] = shot_data_list
+            return shot_data_list
+    
+        # -------------------------------
+        # Otherwise, just use standard DAQ
+        # -------------------------------
+        else:
+            shot_data = self.DAQ.get_shot_data(
+                self.config['name'],
+                shot_dict
+            )
+    
+            if shot_data is None:
+                print(f"[INFO] No data found for {self.config['name']} in shot {shot_dict}")
+                return None
+    
+            if isinstance(shot_data, dict) and 'data' in shot_data:
+                shot_data = shot_data['data']
+    
+            self._scope_cache[cache_key] = shot_data
+            return shot_data
 
     # ------------------------------------------------------------------
     # Internal helper
