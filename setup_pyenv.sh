@@ -98,7 +98,7 @@ echo "Checking if LAMP is installed..."
 if ! micromamba run -n "${ENV_NAME}" python -c "import LAMP" &>/dev/null; then
     echo "LAMP not found. Installing..."
     micromamba run -n "${ENV_NAME}" pip install --upgrade pip
-    micromamba run -n "${ENV_NAME}" pip install LAMP
+    micromamba run -n "${ENV_NAME}" pip install LAMP==0.1.0
 else
     echo "LAMP is already installed."
 fi
