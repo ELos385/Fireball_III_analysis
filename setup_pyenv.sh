@@ -75,7 +75,7 @@ missing=()
 
 # Check each module
 for mod in "${MODULES[@]}"; do
-  if ! ${MICROMAMBA} run -p "${ENV_PATH}" python -c "import ${mod}" >/dev/null 2>&1; then
+  if ! ${MICROMAMBA} run -p "${ENV_NAME}" python -c "import ${mod}" >/dev/null 2>&1; then
     echo "${mod} missing"
     missing+=("${mod}")
   else
@@ -86,7 +86,7 @@ done
 # Install missing modules (if any)
 if [ ${#missing[@]} -gt 0 ]; then
   echo "Installing: ${missing[*]}"
-  ${MICROMAMBA} install -y -p "${ENV_PATH}" "${missing[@]}"
+  ${MICROMAMBA} install -y -p "${ENV_NAME}" "${missing[@]}"
 else
   echo "All modules already installed"
 fi
@@ -98,7 +98,7 @@ echo "Checking if LAMP is installed..."
 if ! micromamba run -n "${ENV_NAME}" python -c "import LAMP" &>/dev/null; then
     echo "LAMP not found. Installing..."
     micromamba run -n "${ENV_NAME}" pip install --upgrade pip
-    micromamba run -n "${ENV_NAME}" pip install LAMP==0.1.0
+    micromamba run -n "${ENV_NAME}" pip install LAMP==0.1.0.post1
 else
     echo "LAMP is already installed."
 fi
