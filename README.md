@@ -80,7 +80,7 @@ python3 -m pip install -r Requirements.txt
 You should then register the ipykernel:
 
 ```bash
-python -m ipykernel install --user --name=FBIII --display-name "Python (FBIII)"
+python3 -m ipykernel install --user --name=FBIII --display-name "Python (FBIII)"
 ```
 
 You will also need to change the PATH in local.toml to point to the location your data is saved in locally. The directory ```./data_root``` inside the repository can be used for this.
