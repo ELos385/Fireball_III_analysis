@@ -464,11 +464,11 @@ class ESpec_(Diagnostic):
 #                 disp_spec = disp_curve[1,:]
 
         
-        if "MeV" in disp_dict and "x_mm" in disp_dict:
+        if "Energy_MeV" in disp_dict and "x_mm" in disp_dict:
+        
             disp_spat=disp_dict["x_mm"]
-            disp_spec=disp_dict["MeV"]
+            disp_spec=disp_dict["Energy_MeV"]
             disp_curve=np.stack((disp_spec,disp_spat),axis=0)
-            
             disp_dict['filename']=None
             
         if "angle to normal (rad)" in disp_dict:
@@ -498,13 +498,15 @@ class ESpec_(Diagnostic):
 
         disp_fit = interp1d(self.to_mm(disp_spat,spat_units), self.to_MeV(disp_spec, spec_units),bounds_error=False, fill_value="extrapolate")
        
-        disp_angle=interp1d(self.to_mm(disp_spat,spat_units), theta_, bounds_error=False, fill_value="extrapolate")
+        print(disp_spat.shape, theta_.shape)
+        disp_angle=interp1d(self.to_mm(disp_spat,spat_units), self.to_mrad(theta_, disp_dict['div_units']), bounds_error=False, fill_value="extrapolate")
         
         
 #         plt.plot(disp_spat, disp_spec, label='input')
 #         plt.plot(self.x_mm, disp_fit(self.x_mm), label='interp')
 #         plt.legend()
 #         plt.show()
+        print(axis.lower())
         if axis.lower() == 'x':
             MeV = disp_fit(self.x_mm)
             theta=disp_angle(self.x_mm)
@@ -527,17 +529,16 @@ class ESpec_(Diagnostic):
         if 'dispersion' not in self.calib_dict:
             self.calib_dict['dispersion'] = {}
         
+        print("theta shape=%s"%[theta.shape])
         # save details to calib dictionary
         dict_update(self.calib_dict['dispersion'],{
             "calib_curve": disp_curve,
             "calib_filename": disp_dict['filename'],
             "calib_spatial_units": spat_units,
             "calib_spectral_units": spec_units,
-            "angle (rad)":theta,
+            "angle (mrad)":theta,
             "mm": mm,
-            "x_mm": mm,
             "MeV": MeV,
-            "angle to normal (rad)":theta,
             "axis": axis
         })
             
@@ -553,15 +554,23 @@ class ESpec_(Diagnostic):
         if disp_dict['axis'] == 'x':
             self.x_MeV = MeV
             dMeV_matrix = np.tile(dMeV, (len(self.y_mm),1))
+            dxmm = abs(np.gradient(self.x_mm))
+            dxmm_matrix = np.tile(dxmm, (len(self.y_mm),1))
+            img_data = img_data*dxmm_matrix 
         elif disp_dict['axis'] == 'y':
             self.y_MeV = MeV
             dMeV_matrix = np.transpose(np.tile(dMeV, (len(self.x_mm),1)))
-
+            dymm = abs(np.gradient(self.y_mm))
+            dymm_matrix = np.tile(dymm, (len(self.x_mm),1))
+            img_data = img_data*dymm_matrix 
+        
+#         print("dMeV_matrix=%s"%dMeV_matrix)
         # convert from counts to counts per MeV
         img_data = img_data / dMeV_matrix
         
         if "angle to normal (rad)" in disp_dict:
-            img_data=img_data/np.cos(disp_dict["angle (rad)"])
+            print("correct angle")
+            img_data=img_data/np.cos(disp_dict["angle (mrad)"]*1e-3)
 
         if '/MeV' not in self.img_units:
             self.img_units.append('/MeV')
