@@ -34,16 +34,12 @@ for key, value in template.config.items():
 
 # Test get_shot_data with filename input
 shot_data = ex.DAQ.get_shot_data('ORCA', {'filename': 'test35104283.3726821.dac'})
-logger.info(f"Shot data keys: {shot_data.keys()}")
 logger.info(f"Shot data: {shot_data}")
 
 # Test get_shot_data with filename input
 shot_data = ex.DAQ.get_shot_data('ORCA', "test35104283.3726821.dac")
-logger.info(f"Shot data keys: {shot_data.keys()}")
 logger.info(f"Shot data: {shot_data}")
-
-
-
+print(shot_data.shape)
 # # Test get_shot_data with filename input
 # shot_data = ex.DAQ.get_shot_data('SCOPE1', {'timestamp': '20250602182450'})
 # logger.info(f"Shot data keys: {shot_data.keys()}")
