@@ -20,7 +20,7 @@ class Fireball_DAQ(DAQ):
     __authors__ = ['Brendan Kettle', 'Eva Los', 'Maximilian Mudra', 'Margarida Pereira']
 
     # These file_types can be used so far
-    supported_file_types = ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif','scope','image', 'asc', 'csv_image']
+    supported_file_types = ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif','scope','image', 'asc', 'csv_image', 'orca_streak_data']
 
     def __init__(self, exp_obj):
         """Initiate parent base Diagnostic class to get all shared attributes and funcs"""
@@ -38,6 +38,31 @@ class Fireball_DAQ(DAQ):
         logger.info(f"Logging level set to {level_str.upper()}")
         return
 
+    def load_orca_streak_data(self, shot_filepath):
+        """Custom loader for ORCA streak data, which is stored in .dac files. These files are essentially .csv files, but with a .dac extension and some specific formatting. This function reads the .dac file, extracts the relevant data, and returns it in a structured format.
+
+        Parameters
+        ----------
+            shot_filepath : str
+                The path to the .dac file where the ORCA streak data is stored.
+
+        Returns
+        -------
+            data : np.ndarray (2048, 2048)
+                A numpy array containing the shot data from the streak camera
+        """
+        logger.debug(f"Loading ORCA streak data data from {shot_filepath} in Fireball DAQ.")
+
+        if not Path(shot_filepath).suffix == '.dac':
+            raise ValueError(f"Error: load_orca_streak_data() function only supports .dac files, "
+                            f"but {shot_filepath} has extension {Path(shot_filepath).suffix}")
+
+        raw_data = np.loadtxt(shot_filepath, delimiter="\t", skiprows=1)
+
+        # Assuming the first column is label and the rest are streak data channels
+        data = raw_data[:, 1: ]
+
+        return data
 
     def load_asc(self, filepath):
         """Loads data from .asc files, which are used for spectroscopy in the Fireball
@@ -54,6 +79,7 @@ class Fireball_DAQ(DAQ):
             data : np.ndarray
                 The spectroscopy data as a numpy array after being loaded from the .asc file.
         """
+        logger.debug(f"Loading .asc data from {filepath} in Fireball DAQ.")
 
         if not Path(filepath).suffix == '.asc':
             raise ValueError(f"Error: load_asc() function only supports .asc files, "
@@ -190,10 +216,11 @@ class Fireball_DAQ(DAQ):
 
         Returns
         -------
-            data : np.ndarray
+            data :
                 The data loaded from the file, in a format determined by the file type.
         """
         logger.debug(f"Loading data from {shot_filepath} with file_type {file_type} in {self.__name__} DAQ.")
+
         if file_type in ['pickle', 'json', 'csv', 'numpy', 'npy', 'toml', 'tif']:
              data = super().load_data(shot_filepath, file_type=file_type)
         elif file_type == 'asc':
@@ -205,6 +232,8 @@ class Fireball_DAQ(DAQ):
         elif file_type =="csv_image":
             img = np.genfromtxt(Path(shot_filepath), delimiter=',')
             data = img[1:, 1:]
+        elif file_type == "orca_streak_data":
+            data = self.load_orca_streak_data(Path(shot_filepath))
         else:
             raise ValueError(f"Error: file_type {file_type} not supported in Fireball DAQ.")
 
