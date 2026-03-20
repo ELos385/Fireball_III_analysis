@@ -2,18 +2,26 @@
 set -euo pipefail
 
 # Set environment variables for setup
-ENV_NAME="Fireball_env"
+ENV_NAME="fireball_env"
+SHARED_PATH="/eos/project/h/hiradmat/HRMT Experiments/2026/HRMT76 - FIREBALL-IV/temp"
 PYTHON_VERSION="3.12"
-MAMBA_ROOT_PREFIX="${HOME}/mamba"
+MAMBA_ROOT_PREFIX="${SHARED_PATH}/mamba"
 MICROMAMBA="${MAMBA_ROOT_PREFIX}/bin/micromamba"
 # ENV_PATH="/eos/project/h/hiradmat/HRMT Experiments/2026/HRMT76 - FIREBALL-IV/envs/${ENV_NAME}"
 ENV_PATH="${MAMBA_ROOT_PREFIX}/envs/${ENV_NAME}"
 
-LOGFILE="${HOME}/setup_${ENV_NAME}_$(date +%Y%m%d_%H%M%S).log"
+LOGFILE="${SHARED_PATH}/setup_${ENV_NAME}_$(date +%Y%m%d_%H%M%S).log"
 
 # -----------------------------
 # Logging setup
 # -----------------------------
+if [ ! -d "$SHARED_PATH" ]; then
+    echo "Error: Directory does not exist: $SHARED_PATH" >&2
+    exit 1
+fi
+echo "Directory ready: ${SHARED_PATH}"
+
+
 exec > >(tee -a "${LOGFILE}") 2>&1
 
 log() {
@@ -85,9 +93,24 @@ unalias python 2>/dev/null || true
 # Download micromamba if needed
 section "Checking micromamba"
 
+# Create mamba under SHARED_PATH if needed
+if [ ! -d "$MAMBA_ROOT_PREFIX" ]; then
+    mkdir "$MAMBA_ROOT_PREFIX" || {
+        echo "Error: could not create $MAMBA_ROOT_PREFIX" >&2
+        exit 1
+    }
+fi
+
+# Create bin under mamba if needed
+if [ ! -d "${MAMBA_ROOT_PREFIX}/bin" ]; then
+    mkdir "${MAMBA_ROOT_PREFIX}/bin" || {
+        echo "Error: could not create ${MAMBA_ROOT_PREFIX}/bin" >&2
+        exit 1
+    }
+fi
+
 if [ ! -f "${MICROMAMBA}" ]; then
     log "Installing micromamba..."
-    mkdir -p "$(dirname "${MICROMAMBA}")"
     cd "${MAMBA_ROOT_PREFIX}"
     wget -qO- https://micromamba.snakepit.net/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
 else
@@ -99,7 +122,7 @@ section "Checking environment ${ENV_NAME}"
 
 if [ ! -x "${ENV_PATH}/bin/python" ]; then
     log "Creating environment at ${ENV_PATH}..."
-    ${MICROMAMBA} create -y -p "${ENV_PATH}" "python=${PYTHON_VERSION}"
+    "${MICROMAMBA}" create -y -p "${ENV_PATH}" "python=${PYTHON_VERSION}"
 else
     log "Environment already exists."
 fi
@@ -128,7 +151,7 @@ section "pip dependency check"
 "${MICROMAMBA}" run -p "${ENV_PATH}" python -m pip check || log "WARNING: dependency issues detected"
 
 section "Registering Jupyter kernel"
-${MICROMAMBA} run -p "${ENV_PATH}" python -m ipykernel install \
+"${MICROMAMBA}" run -p "${ENV_PATH}" python -m ipykernel install \
   --prefix "/home/${USER}/.local" \
   --name "${ENV_NAME}" \
   --display-name "Python (${ENV_NAME})"
