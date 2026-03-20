@@ -45,9 +45,9 @@ calib_file = 'SCOPE2_calibs.toml'
 
 [ORCA]
 type = 'Orca'
-data_folder = '/orca_streak'
+data_folder = '/orca_streak/original_files'
 data_stem = ''
-data_type = 'streak_data'
+data_type = 'orca_streak_data'
 data_ext = '.dac'
 calib_subfolder = './orca'
 calib_file = ''
