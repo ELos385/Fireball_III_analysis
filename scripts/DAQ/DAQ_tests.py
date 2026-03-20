@@ -21,7 +21,7 @@ for key, value in ex.config.items():
     else:
         logger.debug(f"{key}: {value}")
 
-template = ex.get_diagnostic('SCOPE1')
+template = ex.get_diagnostic('ORCA')
 
 logger.debug("Diagnostics configuration:")
 for key, value in template.config.items():
@@ -33,17 +33,24 @@ for key, value in template.config.items():
         logger.debug(f"{key}: {value}")
 
 # Test get_shot_data with filename input
-shot_data = ex.DAQ.get_shot_data('SCOPE1', {'filename': 'scope1__ALL_20250602182440870.csv'})
+shot_data = ex.DAQ.get_shot_data('ORCA', {'filename': 'test35104283.3726821.dac'})
 logger.info(f"Shot data keys: {shot_data.keys()}")
 logger.info(f"Shot data: {shot_data}")
 
 # Test get_shot_data with filename input
-shot_data = ex.DAQ.get_shot_data('SCOPE1', {'timestamp': '20250602182450'})
+shot_data = ex.DAQ.get_shot_data('ORCA', "test35104283.3726821.dac")
 logger.info(f"Shot data keys: {shot_data.keys()}")
 logger.info(f"Shot data: {shot_data}")
 
-# Test get_shot_data with string input
-shot_data = ex.DAQ.get_shot_data('SCOPE1', 'scope1__ALL_20250602182440870.csv')
-logger.info(f"Shot data keys: {shot_data.keys()}")
-logger.info(f"Shot data: {shot_data}")
+
+
+# # Test get_shot_data with filename input
+# shot_data = ex.DAQ.get_shot_data('SCOPE1', {'timestamp': '20250602182450'})
+# logger.info(f"Shot data keys: {shot_data.keys()}")
+# logger.info(f"Shot data: {shot_data}")
+
+# # Test get_shot_data with string input
+# shot_data = ex.DAQ.get_shot_data('SCOPE1', 'scope1__ALL_20250602182440870.csv')
+# logger.info(f"Shot data keys: {shot_data.keys()}")
+# logger.info(f"Shot data: {shot_data}")
 
